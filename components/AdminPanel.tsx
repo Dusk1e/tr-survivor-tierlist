@@ -17,6 +17,7 @@ export default function AdminPanel({ onLogout }: { onLogout: () => void }) {
   const [tab, setTab] = useState<Tab>("roster");
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [pendingCount, setPendingCount] = useState(0);
+  const [totalCount, setTotalCount] = useState(0);
 
   const pushToast = useCallback((text: string, kind: "ok" | "err" = "ok") => {
     const id = Date.now() + Math.random();
@@ -26,9 +27,10 @@ export default function AdminPanel({ onLogout }: { onLogout: () => void }) {
 
   const refreshPending = useCallback(() => {
     getVoteLog()
-      .then((all) =>
-        setPendingCount(all.filter((v) => v.status === "pending").length)
-      )
+      .then((all) => {
+        setPendingCount(all.filter((v) => v.status === "pending").length);
+        setTotalCount(all.length);
+      })
       .catch(() => {});
   }, []);
 
@@ -114,12 +116,18 @@ export default function AdminPanel({ onLogout }: { onLogout: () => void }) {
 
       {tab === "approvals" && (
         <>
-          <PurgeVotesBar onDone={refreshPending} onToast={pushToast} />
+          <PurgeVotesBar
+            toplam={totalCount}
+            onDone={refreshPending}
+            onToast={pushToast}
+          />
           <VoteApprovals deciderName="Admin" onChanged={refreshPending} />
         </>
       )}
 
-      {tab === "log" && <VoteLog />}
+      {/* Silme yetkisi SADECE burada açık — yetkili paneli VoteLog'u
+          canDelete geçmeden kullanır, orada "Sil" düğmesi görünmez. */}
+      {tab === "log" && <VoteLog canDelete />}
 
       {tab === "perms" && <PermissionsPanel onToast={pushToast} />}
 
@@ -155,23 +163,36 @@ function TabButton({
   );
 }
 
-/** Tüm oyları silme çubuğu — iki adımlı onay ister. */
+/**
+ * Tüm oyları silme çubuğu — ÜÇ kademeli uyarı ister ve son adımda
+ * onay kelimesinin yazılmasını şart koşar. Yanlışlıkla basılması imkânsız.
+ */
+const PURGE_WORD = "SIFIRLA";
+
 function PurgeVotesBar({
+  toplam,
   onDone,
   onToast,
 }: {
+  toplam: number;
   onDone: () => void;
   onToast: (msg: string, kind?: "ok" | "err") => void;
 }) {
-  const [confirming, setConfirming] = useState(false);
+  const [adim, setAdim] = useState(0); // 0 = kapalı, 1-2 = uyarı, 3 = yazarak onay
+  const [kelime, setKelime] = useState("");
   const [busy, setBusy] = useState(false);
+
+  function iptal() {
+    setAdim(0);
+    setKelime("");
+  }
 
   async function purge() {
     setBusy(true);
     try {
       const n = await purgeAllVotes();
       onToast(`${n} oy silindi. Puanlar tier başlangıç değerlerine döndü.`);
-      setConfirming(false);
+      iptal();
       onDone();
     } catch (e: any) {
       onToast(e?.message ?? "Silinemedi", "err");
@@ -181,29 +202,93 @@ function PurgeVotesBar({
   }
 
   return (
-    <div className="glass mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl px-4 py-3">
-      <div>
-        <div className="font-system text-sm font-bold text-choco">
-          Tüm oyları sil
+    <div className="glass mb-4 rounded-xl px-4 py-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <div className="font-system text-sm font-bold text-choco">
+            Tüm oyları sil
+          </div>
+          <div className="text-xs font-medium text-choco/45">
+            Bekleyen ve onaylanmış bütün puanlamaları kaldırır. Geri alınamaz.
+          </div>
         </div>
-        <div className="text-xs font-medium text-choco/45">
-          Bekleyen ve onaylanmış bütün puanlamaları kaldırır. Geri alınamaz.
-        </div>
-      </div>
-      {confirming ? (
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-bold text-red-400">Emin misin?</span>
-          <button onClick={purge} disabled={busy} className="btn-danger px-3 py-1.5 text-xs disabled:opacity-50">
-            {busy ? "Siliniyor…" : "Evet, hepsini sil"}
+
+        {adim === 0 && (
+          <button
+            onClick={() => setAdim(1)}
+            className="btn-danger px-3 py-1.5 text-xs"
+          >
+            Oyları Sıfırla
           </button>
-          <button onClick={() => setConfirming(false)} className="btn-ghost px-3 py-1.5 text-xs">
+        )}
+
+        {adim > 0 && (
+          <button onClick={iptal} className="btn-ghost px-3 py-1.5 text-xs">
             Vazgeç
           </button>
+        )}
+      </div>
+
+      {adim > 0 && (
+        <div className="mt-3 rounded-lg border border-red-500/40 bg-red-500/10 p-3">
+          {/* 1. uyarı */}
+          {adim === 1 && (
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="text-sm font-semibold text-red-200">
+                Uyarı 1/3 — Sitedeki <b>{toplam}</b> puanlamanın tamamı
+                silinecek. Devam edilsin mi?
+              </p>
+              <button
+                onClick={() => setAdim(2)}
+                className="btn-danger shrink-0 px-3 py-1.5 text-xs"
+              >
+                Devam
+              </button>
+            </div>
+          )}
+
+          {/* 2. uyarı */}
+          {adim === 2 && (
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="text-sm font-semibold text-red-200">
+                Uyarı 2/3 — Bu işlem <b>geri alınamaz</b>. Herkesin puanı
+                tier başlangıç değerine döner, oy geçmişi tamamen kaybolur.
+              </p>
+              <button
+                onClick={() => setAdim(3)}
+                className="btn-danger shrink-0 px-3 py-1.5 text-xs"
+              >
+                Anladım, devam
+              </button>
+            </div>
+          )}
+
+          {/* 3. uyarı — yazarak onay */}
+          {adim === 3 && (
+            <div>
+              <p className="mb-2 text-sm font-semibold text-red-200">
+                Uyarı 3/3 — Son adım. Onaylamak için aşağıya{" "}
+                <b>{PURGE_WORD}</b> yaz.
+              </p>
+              <div className="flex flex-wrap items-center gap-2">
+                <input
+                  autoFocus
+                  className="field !w-48 py-1.5 text-sm font-mono tracking-widest"
+                  value={kelime}
+                  onChange={(e) => setKelime(e.target.value)}
+                  placeholder={PURGE_WORD}
+                />
+                <button
+                  onClick={purge}
+                  disabled={busy || kelime.trim().toLocaleUpperCase("tr") !== PURGE_WORD}
+                  className="btn-danger px-3 py-1.5 text-xs disabled:opacity-40"
+                >
+                  {busy ? "Siliniyor…" : `${toplam} oyu kalıcı olarak sil`}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
-      ) : (
-        <button onClick={() => setConfirming(true)} className="btn-danger px-3 py-1.5 text-xs">
-          Oyları Sıfırla
-        </button>
       )}
     </div>
   );

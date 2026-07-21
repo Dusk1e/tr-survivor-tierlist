@@ -450,10 +450,10 @@ export async function cancelVote(voteId: string): Promise<void> {
 }
 
 /**
- * Yetkili: kayıt defterinden herhangi bir oyu siler — onaylanmış olanlar
+ * SADECE admin: kayıt defterinden herhangi bir oyu siler — onaylanmış olanlar
  * dahil. Onaylı bir oy silinince o farenin puanı da yeniden hesaplanır.
  */
-export async function deleteVoteAsStaff(voteId: string): Promise<void> {
+export async function deleteVoteAsAdmin(voteId: string): Promise<void> {
   if (isCloud) {
     const res = await fetch(`/api/votes/${voteId}`, {
       method: "DELETE",

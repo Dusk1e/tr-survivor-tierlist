@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { deleteVoteAsStaff, getVoteLog } from "@/lib/api";
+import { deleteVoteAsAdmin, getVoteLog } from "@/lib/api";
 import { DIMS, zoneOf } from "@/lib/dims";
 import { formatName } from "@/lib/format";
 import { Vote, VoteStatus } from "@/lib/types";
@@ -18,12 +18,18 @@ const STATUS_META: Record<VoteStatus, { label: string; color: string }> = {
  * Puanlama kayıt defteri: kim kime ne verdi, kategori kategori; durum,
  * tarih ve karar veren. Durum filtresi + nick arama.
  */
-export default function VoteLog() {
+export default function VoteLog({
+  canDelete = false,
+}: {
+  /** Silme YALNIZCA site yöneticisine açıktır. Yetkili paneli bunu geçmez. */
+  canDelete?: boolean;
+}) {
   const [votes, setVotes] = useState<Vote[]>([]);
   const [filter, setFilter] = useState<Filter>("all");
   const [q, setQ] = useState("");
   const [err, setErr] = useState<string | null>(null);
   const [silinen, setSilinen] = useState<string | null>(null);
+  const [onayBekleyen, setOnayBekleyen] = useState<string | null>(null);
 
   const load = useCallback(() => {
     getVoteLog()
@@ -35,13 +41,14 @@ export default function VoteLog() {
     load();
   }, [load]);
 
-  /** Doğrudan siler — ek onay adımı yok. Onaylı oy silinirse puan yeniden hesaplanır. */
+  /** Onay verildikten sonra siler. Onaylı oy silinirse puan yeniden hesaplanır. */
   async function sil(v: Vote) {
     setSilinen(v.id);
     setErr(null);
     try {
-      await deleteVoteAsStaff(v.id);
+      await deleteVoteAsAdmin(v.id);
       setVotes((prev) => prev.filter((x) => x.id !== v.id));
+      setOnayBekleyen(null);
     } catch (e: any) {
       setErr(e?.message ?? "Silinemedi");
     } finally {
@@ -185,17 +192,38 @@ export default function VoteLog() {
                   )}
                 </span>
 
-                <button
-                  onClick={() => sil(v)}
-                  disabled={silinen === v.id}
-                  title={`${formatName(v.voter_nick)} → ${formatName(
-                    v.target_nick
-                  )} puanını sil`}
-                  aria-label="Bu puanı sil"
-                  className="shrink-0 rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1 font-display text-[10px] font-bold uppercase tracking-wide text-choco/50 transition-colors hover:border-red-500/50 hover:bg-red-500/15 hover:text-red-300 disabled:opacity-40"
-                >
-                  {silinen === v.id ? "Siliniyor" : "Sil"}
-                </button>
+                {canDelete &&
+                  (onayBekleyen === v.id ? (
+                    <span className="flex shrink-0 items-center gap-1.5">
+                      <span className="font-system text-[11px] font-bold text-red-300">
+                        Silinsin mi?
+                      </span>
+                      <button
+                        onClick={() => sil(v)}
+                        disabled={silinen === v.id}
+                        className="btn-danger px-2.5 py-1 text-[10px] disabled:opacity-50"
+                      >
+                        {silinen === v.id ? "Siliniyor" : "Evet, sil"}
+                      </button>
+                      <button
+                        onClick={() => setOnayBekleyen(null)}
+                        className="btn-ghost px-2.5 py-1 text-[10px]"
+                      >
+                        Vazgeç
+                      </button>
+                    </span>
+                  ) : (
+                    <button
+                      onClick={() => setOnayBekleyen(v.id)}
+                      title={`${formatName(v.voter_nick)} → ${formatName(
+                        v.target_nick
+                      )} puanını sil`}
+                      aria-label="Bu puanı sil"
+                      className="shrink-0 rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1 font-display text-[10px] font-bold uppercase tracking-wide text-choco/50 transition-colors hover:border-red-500/50 hover:bg-red-500/15 hover:text-red-300"
+                    >
+                      Sil
+                    </button>
+                  ))}
               </div>
             );
           })}

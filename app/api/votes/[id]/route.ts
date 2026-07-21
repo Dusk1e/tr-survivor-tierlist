@@ -60,8 +60,10 @@ export async function PATCH(
 
 /**
  * DELETE — iki ayrı yetki:
- *  1) Yetkili (admin ya da vote_approve yetkisi olan) HER oyu siler,
- *     onaylanmış olanlar dahil. Kayıt defterinden doğrudan silme bunu kullanır.
+ *  1) SADECE site yöneticisi (admin oturumu) her oyu silebilir, onaylanmış
+ *     olanlar dahil. Kayıt defterindeki "Sil" düğmesi bunu kullanır.
+ *     Yetkili personel — "oy onaylama" yetkisi olsa bile — SİLEMEZ;
+ *     onaylayıp reddedebilir ama kaydı yok edemez.
  *  2) Oyun sahibi kendi oyunu sadece HENÜZ ONAYLANMAMIŞKEN iptal edebilir;
  *     onaylanan puan sahibi için kilitlidir.
  */
@@ -74,12 +76,8 @@ export async function DELETE(
 
   const tok = verifyMouseToken(req.cookies.get(MOUSE_COOKIE)?.value);
 
-  // 1) Yetkili silmesi — sınırsız.
-  let staff = verifySessionToken(req.cookies.get(ADMIN_COOKIE)?.value);
-  if (!staff && tok)
-    staff = Boolean(await mouseHasPerm(tok.mouseId, tok.epoch, "vote_approve"));
-
-  if (staff) {
+  // 1) Yalnızca admin — sınırsız silme.
+  if (verifySessionToken(req.cookies.get(ADMIN_COOKIE)?.value)) {
     if (!(await getVote(params.id)))
       return NextResponse.json({ error: "Kayıt yok" }, { status: 404 });
     try {
