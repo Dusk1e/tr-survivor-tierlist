@@ -20,9 +20,11 @@ import { useSession } from "./SessionProvider";
 export default function MouseCard({ mouse }: { mouse: Mouse }) {
   const tier = tierOf(mouse.tier);
   const isLove = tier.shape === "heart";
-  const { isMe, aggFor, openDetail } = useSession();
+  const { isMe, aggFor, myVoteFor, openDetail } = useSession();
   const mine = isMe(mouse.id);
   const agg = aggFor(mouse.id);
+  // Giriş yapan oyuncunun bu fareye verdiği puan (yoksa undefined).
+  const benimOyum = myVoteFor(mouse.id);
 
   const [peek, setPeek] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -99,6 +101,41 @@ export default function MouseCard({ mouse }: { mouse: Mouse }) {
               <span className="absolute left-1 top-1 h-2.5 w-2.5 rounded-full bg-green-500 ring-2 ring-[#151b24]" />
             )}
           </div>
+
+          {/* Bu fareye puan verdiysen sağ üstte tik çıkar — tıklamadan
+              hangilerini oyladığın belli olsun diye. Yeşil = onaylandı,
+              sarı = yetkili onayı bekliyor. */}
+          {/* Reddedilen oyda tik YOK — o fareye tekrar puan verilebilir. */}
+          {benimOyum &&
+            (benimOyum.status === "approved" ||
+              benimOyum.status === "pending") && (
+            <span
+              className="absolute -right-1.5 -top-1.5 flex h-[19px] w-[19px] items-center justify-center rounded-full ring-2 ring-[#151b24]"
+              style={{
+                background:
+                  benimOyum.status === "approved" ? "#22c55e" : "#eab308",
+              }}
+              title={
+                benimOyum.status === "approved"
+                  ? "Bu fareye puan verdin"
+                  : "Puanın yetkili onayı bekliyor"
+              }
+              aria-label="Puan verdin"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                width={12}
+                height={12}
+                fill="none"
+                stroke="#0b0f15"
+                strokeWidth={3.5}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M20 6 9 17l-5-5" />
+              </svg>
+            </span>
+          )}
           {/* Aşk Köşesi'nde puan yoktur — puanın yerini kalp alır. */}
           <div className="absolute -bottom-2 -right-3">
             {isLove ? (
