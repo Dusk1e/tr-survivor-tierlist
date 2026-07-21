@@ -14,7 +14,7 @@ const MAIN: Omit<TierConfig, "kind">[] = [
     deep: "#f3cf7e",
     sigil: "M",
     glow: 3,
-    baseline: 90,
+    baseline: 89,
   },
   {
     id: "s",
@@ -69,7 +69,7 @@ const MAIN: Omit<TierConfig, "kind">[] = [
     deep: "#b4bec9",
     sigil: "E",
     glow: 0.3,
-    baseline: 10,
+    baseline: 29,
   },
 ];
 
