@@ -449,6 +449,27 @@ export async function cancelVote(voteId: string): Promise<void> {
   pingDataChanged();
 }
 
+/**
+ * Yetkili: kayıt defterinden herhangi bir oyu siler — onaylanmış olanlar
+ * dahil. Onaylı bir oy silinince o farenin puanı da yeniden hesaplanır.
+ */
+export async function deleteVoteAsStaff(voteId: string): Promise<void> {
+  if (isCloud) {
+    const res = await fetch(`/api/votes/${voteId}`, {
+      method: "DELETE",
+      cache: "no-store",
+    });
+    if (res.status === 401)
+      throw new Error("Oturumun sona ermiş. Sayfayı yenileyip tekrar gir.");
+    if (!res.ok)
+      throw new Error((await safeMsg(res)) || `Silinemedi (HTTP ${res.status})`);
+    pingDataChanged();
+    return;
+  }
+  lsSet(LS_VOTES, lsLoadVotes().filter((x) => x.id !== voteId));
+  pingDataChanged();
+}
+
 /** Admin: tüm oyları sil (sıfırlama). */
 export async function purgeAllVotes(): Promise<number> {
   if (isCloud) {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { getVoteLog } from "@/lib/api";
+import { deleteVoteAsStaff, getVoteLog } from "@/lib/api";
 import { DIMS, zoneOf } from "@/lib/dims";
 import { formatName } from "@/lib/format";
 import { Vote, VoteStatus } from "@/lib/types";
@@ -23,6 +23,7 @@ export default function VoteLog() {
   const [filter, setFilter] = useState<Filter>("all");
   const [q, setQ] = useState("");
   const [err, setErr] = useState<string | null>(null);
+  const [silinen, setSilinen] = useState<string | null>(null);
 
   const load = useCallback(() => {
     getVoteLog()
@@ -33,6 +34,20 @@ export default function VoteLog() {
   useEffect(() => {
     load();
   }, [load]);
+
+  /** Doğrudan siler — ek onay adımı yok. Onaylı oy silinirse puan yeniden hesaplanır. */
+  async function sil(v: Vote) {
+    setSilinen(v.id);
+    setErr(null);
+    try {
+      await deleteVoteAsStaff(v.id);
+      setVotes((prev) => prev.filter((x) => x.id !== v.id));
+    } catch (e: any) {
+      setErr(e?.message ?? "Silinemedi");
+    } finally {
+      setSilinen(null);
+    }
+  }
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
@@ -169,6 +184,18 @@ export default function VoteLog() {
                     </span>
                   )}
                 </span>
+
+                <button
+                  onClick={() => sil(v)}
+                  disabled={silinen === v.id}
+                  title={`${formatName(v.voter_nick)} → ${formatName(
+                    v.target_nick
+                  )} puanını sil`}
+                  aria-label="Bu puanı sil"
+                  className="shrink-0 rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1 font-display text-[10px] font-bold uppercase tracking-wide text-choco/50 transition-colors hover:border-red-500/50 hover:bg-red-500/15 hover:text-red-300 disabled:opacity-40"
+                >
+                  {silinen === v.id ? "Siliniyor" : "Sil"}
+                </button>
               </div>
             );
           })}

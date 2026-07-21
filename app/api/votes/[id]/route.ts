@@ -59,8 +59,11 @@ export async function PATCH(
 }
 
 /**
- * DELETE — oyu sahibi iptal eder. Sadece HENÜZ ONAYLANMAMIŞ oylar iptal
- * edilebilir; onaylanan puan kilitlidir.
+ * DELETE — iki ayrı yetki:
+ *  1) Yetkili (admin ya da vote_approve yetkisi olan) HER oyu siler,
+ *     onaylanmış olanlar dahil. Kayıt defterinden doğrudan silme bunu kullanır.
+ *  2) Oyun sahibi kendi oyunu sadece HENÜZ ONAYLANMAMIŞKEN iptal edebilir;
+ *     onaylanan puan sahibi için kilitlidir.
  */
 export async function DELETE(
   req: NextRequest,
@@ -70,6 +73,27 @@ export async function DELETE(
     return NextResponse.json({ error: "Cloud yapılandırılmamış" }, { status: 501 });
 
   const tok = verifyMouseToken(req.cookies.get(MOUSE_COOKIE)?.value);
+
+  // 1) Yetkili silmesi — sınırsız.
+  let staff = verifySessionToken(req.cookies.get(ADMIN_COOKIE)?.value);
+  if (!staff && tok)
+    staff = Boolean(await mouseHasPerm(tok.mouseId, tok.epoch, "vote_approve"));
+
+  if (staff) {
+    if (!(await getVote(params.id)))
+      return NextResponse.json({ error: "Kayıt yok" }, { status: 404 });
+    try {
+      await deleteVote(params.id);
+      return NextResponse.json({ ok: true });
+    } catch (e: any) {
+      return NextResponse.json(
+        { error: e?.message ?? "Silinemedi" },
+        { status: 500 }
+      );
+    }
+  }
+
+  // 2) Kendi oyunu iptal etme.
   if (!tok) return NextResponse.json({ error: "Giriş gerekli" }, { status: 401 });
   const me = await validMouse(tok.mouseId, tok.epoch);
   if (!me)
