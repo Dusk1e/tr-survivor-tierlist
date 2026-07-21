@@ -10,7 +10,8 @@ export const revalidate = 0;
  * Tarayıcıda /api/health açılır. Gecikme/bağlantı sorunlarında ilk bakılacak yer.
  * Gizli bilgi döndürmez — sadece "var mı / kaç satır" bilgisi.
  */
-export async function GET() {
+export async function GET(req: Request) {
+  const test = new URL(req.url).searchParams.get("yazmaTesti") === "1";
   const now = new Date().toISOString();
   const info: Record<string, unknown> = {
     zaman: now,
@@ -99,8 +100,46 @@ export async function GET() {
                   (r.nickname ?? "").trim().toLowerCase()
             )
             .map((r) => ({ nick: r.nickname, girisAdi: r.username })),
+          ayniNicktenBirdenFazla: Object.entries(
+            rows.reduce<Record<string, number>>((acc, r) => {
+              const k = (r.nickname ?? "").trim().toLocaleLowerCase("tr");
+              if (k) acc[k] = (acc[k] ?? 0) + 1;
+              return acc;
+            }, {})
+          )
+            .filter(([, n]) => n > 1)
+            .map(([nick, adet]) => ({ nick, adet })),
         };
       }
+    }
+
+    // Yazma testi — SADECE ?yazmaTesti=1 ile calisir. Gecici bir satir
+    // olusturur, okur, siler ve silindigini dogrular. Gercek veriye dokunmaz.
+    if (test) {
+      const TMP = "__saglik_testi__";
+      const steps: Record<string, string> = {};
+
+      const ins = await c.from("authorities").upsert([{ name: TMP }], {
+        onConflict: "name",
+      });
+      steps["1_ekleme"] = ins.error ? `HATA: ${ins.error.message}` : "tamam";
+
+      const chk = await c.from("authorities").select("name").eq("name", TMP);
+      steps["2_geri_okuma"] = chk.error
+        ? `HATA: ${chk.error.message}`
+        : `${(chk.data ?? []).length} satir bulundu`;
+
+      const del = await c.from("authorities").delete().eq("name", TMP);
+      steps["3_silme"] = del.error ? `HATA: ${del.error.message}` : "tamam";
+
+      const after = await c.from("authorities").select("name").eq("name", TMP);
+      steps["4_silindi_mi"] = after.error
+        ? `HATA: ${after.error.message}`
+        : (after.data ?? []).length === 0
+        ? "EVET, silindi"
+        : "HAYIR, satir hala duruyor";
+
+      info.yazmaTesti = steps;
     }
   } catch (e: any) {
     info.veritabani = "HATA";
