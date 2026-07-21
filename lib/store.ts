@@ -101,12 +101,21 @@ export async function updateMouse(
   const current = await getMouse(id);
   if (!current) throw new Error("Fare bulunamadı");
 
-  const bump =
-    patch.password !== undefined || patch.permissions !== undefined;
   const payload: Record<string, unknown> = { ...patch };
   if (patch.permissions !== undefined)
     payload.permissions = sanitizePerms(patch.permissions);
-  if (bump) payload.epoch = (current.epoch ?? 0) + 1;
+
+  // Epoch SADECE değer gerçekten değiştiyse artar. Eskiden alanın patch'te
+  // bulunması yetiyordu; panel fareyi her kaydettiğinde (tier değişimi,
+  // sürükleme, isim düzeltme) aynı şifre tekrar gönderildiği için epoch
+  // artıyor ve o farenin açık oturumu düşüyordu — "otomatik atıyor".
+  const pwChanged =
+    patch.password !== undefined && patch.password !== (current.password ?? "");
+  const permsChanged =
+    patch.permissions !== undefined &&
+    sanitizePerms(patch.permissions).slice().sort().join(",") !==
+      (current.permissions ?? []).slice().sort().join(",");
+  if (pwChanged || permsChanged) payload.epoch = (current.epoch ?? 0) + 1;
 
   const { data, error } = await db()
     .from(MICE_TABLE)
@@ -260,26 +269,29 @@ export async function setAuthorities(list: string[]): Promise<void> {
     const { error } = await c
       .from(AUTHORITIES_TABLE)
       .upsert(clean.map((name) => ({ name })), { onConflict: "name" });
-    if (error) throw new Error(`Yetkili eklenemedi: ${error.message}`);
+    if (error)
+      throw new Error(`Ekleme basarisiz (adim 1/3): ${error.message}`);
   }
 
-  // 2) Listede olmayanları sil
+  // 2) Mevcut listeyi oku
   const { data: current, error: readErr } = await c
     .from(AUTHORITIES_TABLE)
     .select("name");
-  if (readErr) throw new Error(`Yetkililer okunamadı: ${readErr.message}`);
+  if (readErr)
+    throw new Error(`Liste okunamadi (adim 2/3): ${readErr.message}`);
 
   const keep = new Set(clean.map((n) => n.toLowerCase()));
   const remove = ((current ?? []) as { name: string }[])
-    .map((r) => r.name)
-    .filter((n) => !keep.has(n.trim().toLowerCase()));
+    .map((r) => r?.name ?? "")
+    .filter((n) => n && !keep.has(n.trim().toLowerCase()));
 
-  if (remove.length) {
-    const { error } = await c
-      .from(AUTHORITIES_TABLE)
-      .delete()
-      .in("name", remove);
-    if (error) throw new Error(`Yetkili silinemedi: ${error.message}`);
+  // 3) Fazlalikları sil — TEK TEK eq() ile. Toplu .in("name", […]) filtresi
+  //    bu tabloda güvenilir çalışmıyor (aynı aileden .order("name") de
+  //    sessizce hata döndürüyordu), o yüzden isim başına tek silme yapıyoruz.
+  for (const n of remove) {
+    const { error } = await c.from(AUTHORITIES_TABLE).delete().eq("name", n);
+    if (error)
+      throw new Error(`"${n}" silinemedi (adim 3/3): ${error.message}`);
   }
 }
 

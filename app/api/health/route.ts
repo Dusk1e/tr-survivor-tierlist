@@ -62,6 +62,45 @@ export async function GET() {
       info.yetkililer = real.error
         ? { hata: real.error.message, kod: real.error.code ?? null }
         : ((real.data ?? []) as { name: string }[]).map((r) => r.name);
+
+      // Hangi sorgu bicimi bu tabloda patliyor? (salt-okunur test)
+      const [ordered, filtered] = await Promise.all([
+        c.from("authorities").select("name").order("name"),
+        c.from("authorities").select("name").in("name", ["Blacklean"]),
+      ]);
+      info.sorguTesti = {
+        order: ordered.error ? `HATA: ${ordered.error.message}` : "calisiyor",
+        inFiltresi: filtered.error
+          ? `HATA: ${filtered.error.message}`
+          : "calisiyor",
+      };
+
+      // Giris tanilama — sifre ICERIGI asla donmez, sadece "var mi" bilgisi.
+      const roster = await c.from(MICE_TABLE).select("nickname,username,password");
+      if (roster.error) {
+        info.girisTanilama = { hata: roster.error.message };
+      } else {
+        const rows = (roster.data ?? []) as {
+          nickname: string;
+          username: string;
+          password: string;
+        }[];
+        info.girisTanilama = {
+          sifresiOlmayanFare: rows.filter((r) => !(r.password ?? "").trim())
+            .length,
+          sifresiBoslukluFare: rows.filter(
+            (r) => (r.password ?? "") !== (r.password ?? "").trim()
+          ).length,
+          girisAdiNicktenFarkli: rows
+            .filter(
+              (r) =>
+                (r.username ?? "").trim() &&
+                (r.username ?? "").trim().toLowerCase() !==
+                  (r.nickname ?? "").trim().toLowerCase()
+            )
+            .map((r) => ({ nick: r.nickname, girisAdi: r.username })),
+        };
+      }
     }
   } catch (e: any) {
     info.veritabani = "HATA";

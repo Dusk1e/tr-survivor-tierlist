@@ -27,7 +27,7 @@ function secret(): string {
 export function getAdminPassword(): string | null {
   const env = process.env.ADMIN_PASSWORD;
   if (env && env.length > 0) return env;
-  return process.env.NODE_ENV === "production" ? null : "ysfcan25070200";
+  return process.env.NODE_ENV === "production" ? null : "blackleankaanexe123";
 }
 
 function sign(value: string): string {
