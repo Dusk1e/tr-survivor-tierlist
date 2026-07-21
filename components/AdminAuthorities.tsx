@@ -50,13 +50,21 @@ export default function AdminAuthorities() {
     e.preventDefault();
     const n = name.trim();
     if (!n) return;
-    if (list.some((x) => x.toLowerCase() === n.toLowerCase())) {
-      setErr("Bu isim zaten listede.");
-      setName("");
-      return;
+    const dup = list.find(
+      (x) => x.trim().toLocaleLowerCase("tr") === n.toLocaleLowerCase("tr")
+    );
+    if (dup) {
+      setErr(`"${dup}" zaten listede — aynı isim iki kez eklenemez.`);
+      return; // input'u TEMIZLEME, kullanici ne yazdigini gorsun
     }
     persist([...list, n]);
     setName("");
+  }
+
+  /** Silme — bosluk/buyuk-kucuk harf farkina takilmadan dogru satiri atar. */
+  function remove(target: string) {
+    const key = target.trim().toLocaleLowerCase("tr");
+    persist(list.filter((x) => x.trim().toLocaleLowerCase("tr") !== key));
   }
 
   return (
@@ -64,10 +72,21 @@ export default function AdminAuthorities() {
       <div className="mb-3 font-display text-base font-bold uppercase tracking-[0.12em] text-teal-deep">
         Yetkililer (Site Altı Liste)
       </div>
-      <p className="mb-3 text-xs font-medium text-choco/50">
-        Bu isimler sitenin en altında görünür. Panel yetkileri buradan değil,
-        "Yetkiler" sekmesinden verilir.
-      </p>
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <p className="text-xs font-medium text-choco/50">
+          Bu isimler sitenin en altında görünür. Panel yetkileri buradan değil,
+          "Yetkiler" sekmesinden verilir.
+        </p>
+        <button
+          type="button"
+          onClick={load}
+          disabled={busy}
+          className="btn-ghost shrink-0 px-3 py-1.5 text-xs disabled:opacity-40"
+          title="Sunucudaki gerçek listeyi tekrar oku"
+        >
+          Sunucudan Yenile
+        </button>
+      </div>
 
       <form onSubmit={add} className="mb-4 flex gap-2">
         <input
@@ -108,7 +127,7 @@ export default function AdminAuthorities() {
               <button
                 type="button"
                 disabled={busy}
-                onClick={() => persist(list.filter((x) => x !== n))}
+                onClick={() => remove(n)}
                 className="flex h-5 w-5 items-center justify-center rounded-full bg-white/10 text-choco/70 transition hover:bg-red-500/70 hover:text-white disabled:opacity-40"
                 aria-label={`${n} kaldır`}
               >

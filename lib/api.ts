@@ -484,9 +484,19 @@ export async function saveAuthorities(list: string[]): Promise<void> {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ list }),
+      cache: "no-store",
     });
-    if (!res.ok) throw new Error((await safeMsg(res)) || "Yetkililer kaydedilemedi");
-    return;
+    if (res.ok) return;
+    // Hata mesajı NET olsun — "Unauthorized" gibi kapalı bir metin yerine
+    // ne yapılması gerektiğini söyleyen Türkçe mesaj döndür.
+    if (res.status === 401)
+      throw new Error(
+        "Oturumun sona ermiş. Sayfayı yenileyip tekrar giriş yap, sonra dene."
+      );
+    const msg = await safeMsg(res);
+    throw new Error(
+      `Kaydedilemedi (HTTP ${res.status})${msg ? " — " + msg : ""}`
+    );
   }
   lsSet(LS_AUTH, list);
   pingDataChanged();
