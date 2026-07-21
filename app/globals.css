@@ -339,3 +339,19 @@ input[type="range"].score-slider:disabled {
     transition-duration: 0.001ms !important;
   }
 }
+
+/* Aşk Köşesi — çiftlerin arasındaki kalbin sakin atışı. */
+@keyframes heart-beat {
+  0%, 100% { transform: scale(1); }
+  14%      { transform: scale(1.18); }
+  28%      { transform: scale(1); }
+  42%      { transform: scale(1.1); }
+}
+.heart-beat {
+  display: inline-flex;
+  animation: heart-beat 2.4s ease-in-out infinite;
+  filter: drop-shadow(0 0 6px rgba(244, 114, 182, 0.55));
+}
+@media (prefers-reduced-motion: reduce) {
+  .heart-beat { animation: none; }
+}

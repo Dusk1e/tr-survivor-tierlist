@@ -484,6 +484,57 @@ export async function purgeAllVotes(): Promise<number> {
   return n;
 }
 
+/* ============================== aşk köşesi ============================== */
+
+async function coupleOp(method: "POST" | "DELETE", body: unknown) {
+  const res = await fetch("/api/couples", {
+    method,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+    cache: "no-store",
+  });
+  if (res.status === 401)
+    throw new Error("Oturumun sona ermiş. Sayfayı yenileyip tekrar gir.");
+  if (!res.ok)
+    throw new Error((await safeMsg(res)) || `İşlem başarısız (HTTP ${res.status})`);
+  pingDataChanged();
+}
+
+/** İki fareyi çift yapar. `tasi` true ise ikisi de Aşk Köşesi'ne taşınır. */
+export async function pairMice(
+  a: string,
+  b: string,
+  tasi = true
+): Promise<void> {
+  if (isCloud) return coupleOp("POST", { a, b, tasi });
+
+  const mice = lsLoadMice().map((m) =>
+    m.id === a || m.id === b
+      ? { ...m, partner_id: m.id === a ? b : a, tier: tasi ? "de" : m.tier }
+      : m.partner_id === a || m.partner_id === b
+      ? { ...m, partner_id: null }
+      : m
+  );
+  lsSet(LS_MICE, mice);
+  pingDataChanged();
+}
+
+/** Çifti ayırır — bağ iki taraftan da kopar. */
+export async function unpairMouse(id: string): Promise<void> {
+  if (isCloud) return coupleOp("DELETE", { id });
+
+  const mice = lsLoadMice();
+  const me = mice.find((m) => m.id === id);
+  const es = me?.partner_id ?? null;
+  lsSet(
+    LS_MICE,
+    mice.map((m) =>
+      m.id === id || (es && m.id === es) ? { ...m, partner_id: null } : m
+    )
+  );
+  pingDataChanged();
+}
+
 /* ============================= authorities ============================= */
 
 export async function getAuthorities(): Promise<string[]> {

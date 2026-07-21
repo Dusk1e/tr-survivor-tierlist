@@ -20,6 +20,7 @@ export default function TierRow({
   index: number;
 }) {
   const isBetween = tier.kind === "between";
+  const isLove = tier.shape === "heart";
   const glow = tier.glow ?? 0;
   const upper = isBetween && tier.upper ? tierOf(tier.upper) : null;
   const lower = isBetween && tier.lower ? tierOf(tier.lower) : null;
@@ -123,7 +124,12 @@ export default function TierRow({
                 {tier.subtitle}
               </p>
               <p className="mt-0.5 font-display text-[10px] font-bold uppercase tracking-[0.2em] text-choco/35 tabular-nums">
-                {mice.length} Fare
+                {isLove
+                  ? `${
+                      groupCouples(mice).filter((u) => u.kind === "couple")
+                        .length
+                    } Çift · ${mice.length} Fare`
+                  : `${mice.length} Fare`}
               </p>
             </div>
           </>
@@ -138,13 +144,88 @@ export default function TierRow({
       >
         {mice.length === 0 ? (
           <div className="flex w-full items-center py-4 pl-2 font-system text-sm font-semibold italic text-choco/25">
-            — Henüz kimse yok —
+            {isLove ? "— Henüz çift yok —" : "— Henüz kimse yok —"}
           </div>
+        ) : isLove ? (
+          groupCouples(mice).map((u) =>
+            u.kind === "couple" ? (
+              <CoupleCard key={u.a.id} a={u.a} b={u.b} accent={tier.accent} />
+            ) : (
+              <MouseCard key={u.m.id} mouse={u.m} />
+            )
+          )
         ) : (
           mice.map((m) => <MouseCard key={m.id} mouse={m} />)
         )}
       </div>
     </section>
+  );
+}
+
+type Unit =
+  | { kind: "couple"; a: Mouse; b: Mouse }
+  | { kind: "single"; m: Mouse };
+
+/**
+ * Aşk Köşesi'ndeki fareleri çiftlere ayırır. Eşi bu bantta olmayan
+ * (ya da eşi olmayan) fareler tek başına çizilir.
+ */
+function groupCouples(mice: Mouse[]): Unit[] {
+  const byId = new Map(mice.map((m) => [m.id, m]));
+  const alindi = new Set<string>();
+  const out: Unit[] = [];
+
+  for (const m of mice) {
+    if (alindi.has(m.id)) continue;
+    const es = m.partner_id ? byId.get(m.partner_id) : undefined;
+    if (es && !alindi.has(es.id)) {
+      alindi.add(m.id);
+      alindi.add(es.id);
+      out.push({ kind: "couple", a: m, b: es });
+    } else {
+      alindi.add(m.id);
+      out.push({ kind: "single", m });
+    }
+  }
+  return out;
+}
+
+/** İki fare + aralarında atan bir kalp. */
+function CoupleCard({
+  a,
+  b,
+  accent,
+}: {
+  a: Mouse;
+  b: Mouse;
+  accent: string;
+}) {
+  return (
+    <div
+      className="flex items-center gap-1 rounded-2xl border px-2 py-1.5"
+      style={{
+        borderColor: `${accent}55`,
+        background: `linear-gradient(135deg, ${accent}18, ${accent}08)`,
+        boxShadow: `0 0 18px ${accent}22`,
+      }}
+    >
+      <MouseCard mouse={a} />
+      <span
+        className="heart-beat shrink-0 px-0.5"
+        aria-label="çift"
+        title={`${a.nickname} & ${b.nickname}`}
+      >
+        <svg viewBox="0 0 100 100" width={22} height={22}>
+          <path
+            d="M50,89 C50,89 9,61 9,36 C9,20 21,10 33,10 C41,10 47,15 50,21 C53,15 59,10 67,10 C79,10 91,20 91,36 C91,61 50,89 50,89 Z"
+            fill={accent}
+            stroke="rgba(255,255,255,0.5)"
+            strokeWidth="4"
+          />
+        </svg>
+      </span>
+      <MouseCard mouse={b} />
+    </div>
   );
 }
 

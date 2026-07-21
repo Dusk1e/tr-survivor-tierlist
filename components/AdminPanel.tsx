@@ -8,9 +8,10 @@ import VoteApprovals from "./VoteApprovals";
 import VoteLog from "./VoteLog";
 import PermissionsPanel from "./PermissionsPanel";
 import AdminAuthorities from "./AdminAuthorities";
+import AdminCouples from "./AdminCouples";
 
 type Toast = { id: number; text: string; kind: "ok" | "err" };
-type Tab = "roster" | "approvals" | "log" | "perms" | "authorities";
+type Tab = "roster" | "approvals" | "log" | "perms" | "authorities" | "couples";
 
 /** Full admin dashboard (password-gated, unlisted URL). */
 export default function AdminPanel({ onLogout }: { onLogout: () => void }) {
@@ -99,6 +100,9 @@ export default function AdminPanel({ onLogout }: { onLogout: () => void }) {
         >
           Yetkili Listesi
         </TabButton>
+        <TabButton active={tab === "couples"} onClick={() => setTab("couples")}>
+          Aşk Köşesi
+        </TabButton>
       </div>
 
       {tab === "roster" && (
@@ -132,6 +136,8 @@ export default function AdminPanel({ onLogout }: { onLogout: () => void }) {
       {tab === "perms" && <PermissionsPanel onToast={pushToast} />}
 
       {tab === "authorities" && <AdminAuthorities />}
+
+      {tab === "couples" && <AdminCouples onToast={pushToast} />}
     </div>
   );
 }

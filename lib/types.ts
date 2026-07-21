@@ -35,6 +35,8 @@ export interface Mouse {
   permissions: PermId[];
   /** bumped when perms/password change -> forces re-login */
   epoch: number;
+  /** Aşk Köşesi: eşinin id'si. Karşılıklıdır — iki kayıt da birbirini gösterir. */
+  partner_id?: string | null;
   created_at?: string;
 }
 
@@ -91,6 +93,8 @@ export interface TierConfig {
   accent2: string;
   deep: string;
   sigil: string;
+  /** Rozet şekli — varsayılan altıgen; Aşk Köşesi kalp çizer. */
+  shape?: "hex" | "heart";
   /** 0..3 — visual intensity, higher tiers glow more */
   glow: number;
   /** Bu tier'ın başlangıç puanı (oy yokken gösterilen, oy geldikçe yumuşayan) */

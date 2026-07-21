@@ -32,8 +32,19 @@ function rowToMouse(r: any): Mouse {
     password: r.password ?? "",
     permissions: sanitizePerms(r.permissions),
     epoch: r.epoch ?? 0,
+    partner_id: r.partner_id ?? null,
     created_at: r.created_at,
   };
+}
+
+/** partner_id sütunu yoksa ne yapılacağını açıkça söyleyen hata. */
+function esHatasi(msg: string): Error {
+  if (/partner_id/i.test(msg))
+    return new Error(
+      "Aşk Köşesi için veritabanı güncellemesi gerekiyor. Supabase → SQL Editor'de şunu çalıştır: " +
+        "alter table public.mice add column if not exists partner_id uuid references public.mice(id) on delete set null;"
+    );
+  return new Error(msg);
 }
 
 export function stripPassword(m: Mouse): Mouse {
@@ -236,6 +247,57 @@ export async function decideVote(
     })
     .eq("id", voteId);
   if (error) throw new Error(error.message);
+}
+
+/* ============================== aşk köşesi ============================== */
+
+/** Eşi varsa bağı iki taraftan da koparır. */
+export async function clearCouple(id: string): Promise<void> {
+  const c = db();
+  const m = await getMouse(id);
+  if (!m) return;
+
+  const eski = m.partner_id ?? null;
+  const a = await c.from(MICE_TABLE).update({ partner_id: null }).eq("id", id);
+  if (a.error) throw esHatasi(a.error.message);
+
+  if (eski) {
+    const b = await c
+      .from(MICE_TABLE)
+      .update({ partner_id: null })
+      .eq("id", eski);
+    if (b.error) throw esHatasi(b.error.message);
+  }
+}
+
+/**
+ * İki fareyi çift yapar. Bağ KARŞILIKLIDIR — iki kayıt da birbirini gösterir.
+ * Varsa eski eşler önce serbest bırakılır, yani kimse iki ilişkide kalmaz.
+ * `tasi` true ise ikisi de Aşk Köşesi'ne (de) alınır.
+ */
+export async function setCouple(
+  aId: string,
+  bId: string,
+  tasi = true
+): Promise<void> {
+  if (!aId || !bId) throw new Error("İki fare de seçilmeli");
+  if (aId === bId) throw new Error("Bir fare kendisiyle eşleştirilemez");
+
+  const [a, b] = await Promise.all([getMouse(aId), getMouse(bId)]);
+  if (!a || !b) throw new Error("Fare bulunamadı");
+
+  await clearCouple(aId);
+  await clearCouple(bId);
+
+  const c = db();
+  const yama = (partner: string) =>
+    tasi ? { partner_id: partner, tier: "de" } : { partner_id: partner };
+
+  const r1 = await c.from(MICE_TABLE).update(yama(bId)).eq("id", aId);
+  if (r1.error) throw esHatasi(r1.error.message);
+
+  const r2 = await c.from(MICE_TABLE).update(yama(aId)).eq("id", bId);
+  if (r2.error) throw esHatasi(r2.error.message);
 }
 
 /* ============================= authorities ============================= */

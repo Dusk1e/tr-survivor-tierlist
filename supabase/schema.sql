@@ -21,6 +21,8 @@ create table if not exists public.mice (
   permissions text[] not null default '{}',
   -- şifre/yetki değişince +1 → o farenin tüm oturumları düşer
   epoch       integer not null default 0,
+  -- Ask Kosesi: esinin id'si. Karsiliklidir.
+  partner_id  uuid references public.mice(id) on delete set null,
   created_at  timestamptz not null default now()
 );
 
@@ -65,3 +67,10 @@ on conflict do nothing;
 alter table public.mice enable row level security;
 alter table public.votes enable row level security;
 alter table public.authorities enable row level security;
+
+-- =====================================================================
+--  MEVCUT KURULUMA EKLEME (Ask Kosesi)
+--  Veritabani zaten kuruluysa sadece su satiri calistir:
+-- =====================================================================
+alter table public.mice
+  add column if not exists partner_id uuid references public.mice(id) on delete set null;
