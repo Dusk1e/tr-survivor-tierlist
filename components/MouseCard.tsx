@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { AnimatePresence, motion } from "framer-motion";
 import { Mouse } from "@/lib/types";
 import { tierOf } from "@/lib/tiers";
 import { formatName } from "@/lib/format";
@@ -12,10 +11,11 @@ import ScoreRing from "./ScoreRing";
 import { useSession } from "./SessionProvider";
 
 /**
- * A player card inside a tier band.
- *  - Background is tinted by the slot's color (between-slots blend the two).
- *  - The colored ring shows the overall % (red corner badge = voter count).
- *  - Hover: quick stats peek. Click: full detail + voting modal.
+ * Tier bandındaki oyuncu kartı. Performans için animasyon kütüphanesi
+ * kullanılmaz — hover/tap efektleri saf CSS transform'dur (compositor'da
+ * çalışır, 32+ kartta bile kasmaz).
+ *  - Hover: hızlı istatistik balonu (body'ye portal edilir)
+ *  - Tıklama: detay + puanlama penceresi
  */
 export default function MouseCard({ mouse }: { mouse: Mouse }) {
   const tier = tierOf(mouse.tier);
@@ -41,8 +41,7 @@ export default function MouseCard({ mouse }: { mouse: Mouse }) {
       Math.max(r.left + r.width / 2, half + 8),
       window.innerWidth - half - 8
     );
-    const below = r.top < 340;
-    setPos({ x, y: below ? r.bottom : r.top, below });
+    setPos({ x, y: r.top < 340 ? r.bottom : r.top, below: r.top < 340 });
   }
   const show = () => {
     place();
@@ -63,36 +62,31 @@ export default function MouseCard({ mouse }: { mouse: Mouse }) {
 
   const cardBg =
     tier.kind === "between"
-      ? `linear-gradient(135deg, ${tier.accent}26 0%, ${tier.accent2}26 100%)`
-      : `linear-gradient(180deg, ${tier.accent}24, ${tier.accent}0a)`;
+      ? `linear-gradient(135deg, ${tier.accent}1f 0%, ${tier.accent2}1f 100%)`
+      : `linear-gradient(180deg, ${tier.accent}1c, ${tier.accent}08)`;
 
   return (
     <div className="relative" onMouseEnter={show} onMouseLeave={hide}>
-      <motion.button
+      <button
         ref={btnRef}
         type="button"
         onClick={() => openDetail(mouse)}
         onFocus={show}
         onBlur={hide}
-        whileHover={{ y: -5, scale: 1.03 }}
-        whileTap={{ scale: 0.97 }}
-        className="group relative flex w-[112px] flex-col items-center gap-1.5 overflow-visible rounded-2xl border p-2.5 pb-3 outline-none focus-visible:ring-2 sm:w-[124px]"
+        className="card-hover group relative flex w-[108px] flex-col items-center gap-1.5 rounded-xl border p-2.5 pb-3 outline-none focus-visible:ring-2 sm:w-[118px]"
         style={{
           ["--tw-ring-color" as any]: tier.accent,
           background: cardBg,
-          borderColor: mine ? "#4ade8077" : `${tier.accent}38`,
-          boxShadow: mine
-            ? "0 0 0 1px #4ade8055, 0 10px 24px rgba(0,0,0,0.4)"
-            : "0 10px 24px rgba(0,0,0,0.35)",
+          borderColor: mine ? "#4ade8055" : `${tier.accent}2e`,
         }}
         aria-label={`${formatName(mouse.nickname)} — ${tier.label}`}
       >
         <div className="relative">
           <div
-            className="relative h-[72px] w-[72px] overflow-hidden rounded-xl border transition-all duration-300 sm:h-[80px] sm:w-[80px]"
+            className="h-[70px] w-[70px] overflow-hidden rounded-lg border sm:h-[76px] sm:w-[76px]"
             style={{
-              borderColor: mine ? "#4ade80aa" : `${tier.accent}77`,
-              background: `${tier.accent}14`,
+              borderColor: mine ? "#4ade8099" : `${tier.accent}66`,
+              background: `${tier.accent}12`,
             }}
           >
             <MouseAvatar
@@ -101,15 +95,15 @@ export default function MouseCard({ mouse }: { mouse: Mouse }) {
               accent={tier.accent}
             />
             {mine && (
-              <span className="absolute left-1 top-1 h-2.5 w-2.5 animate-pulse-glow rounded-full bg-green-500 ring-2 ring-white" />
+              <span className="absolute left-1 top-1 h-2.5 w-2.5 rounded-full bg-green-500 ring-2 ring-[#151b24]" />
             )}
           </div>
-          {/* overall score ring overlapping the avatar corner */}
+          {/* Genel puan — sağ altında kırmızı onaylı oy sayacı */}
           <div className="absolute -bottom-2 -right-3">
             <ScoreRing
               value={agg ? agg.overall : null}
               count={agg?.count}
-              size={40}
+              size={38}
               stroke={4}
             />
           </div>
@@ -119,36 +113,29 @@ export default function MouseCard({ mouse }: { mouse: Mouse }) {
           {formatName(mouse.nickname)}
         </span>
 
-        {mine ? (
-          <span className="inline-flex items-center gap-1 rounded-full bg-green-500/15 px-2 py-0.5 font-display text-[8px] font-bold uppercase tracking-[0.12em] text-green-300 ring-1 ring-green-500/40">
-            <span className="h-1 w-1 rounded-full bg-green-400" />
+        {mine && (
+          <span className="rounded-full bg-green-500/12 px-2 py-0.5 font-display text-[8px] font-bold uppercase tracking-[0.1em] text-green-300">
             Giriş Yapıldı
           </span>
-        ) : agg ? null : (
-          <span className="font-display text-[8px] font-bold uppercase tracking-[0.14em] text-choco/30">
-            Henüz Oy Yok
-          </span>
         )}
-      </motion.button>
+      </button>
 
       {mounted &&
+        peek &&
+        pos &&
         createPortal(
-          <AnimatePresence>
-            {peek && pos && (
-              <div
-                className="pointer-events-none fixed z-[60]"
-                style={{
-                  left: pos.x,
-                  top: pos.y,
-                  transform: pos.below
-                    ? "translate(-50%, 12px)"
-                    : "translate(-50%, calc(-100% - 12px))",
-                }}
-              >
-                <SystemWindow mouse={mouse} agg={agg} />
-              </div>
-            )}
-          </AnimatePresence>,
+          <div
+            className="rise-in pointer-events-none fixed z-[60]"
+            style={{
+              left: pos.x,
+              top: pos.y,
+              transform: pos.below
+                ? "translate(-50%, 12px)"
+                : "translate(-50%, calc(-100% - 12px))",
+            }}
+          >
+            <SystemWindow mouse={mouse} agg={agg} />
+          </div>,
           document.body
         )}
     </div>

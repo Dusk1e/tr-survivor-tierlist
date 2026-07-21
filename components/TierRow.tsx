@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { Mouse, TierConfig } from "@/lib/types";
 import { tierOf } from "@/lib/tiers";
 import MouseCard from "./MouseCard";
@@ -34,12 +33,8 @@ export default function TierRow({
     : tier.accent;
 
   return (
-    <motion.section
-      initial={{ opacity: 0, y: 16 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.15 }}
-      transition={{ duration: 0.4, delay: index * 0.04 }}
-      className="glass sys-window relative flex flex-col overflow-hidden sm:flex-row"
+    <section
+      className="glass sys-window rise-in relative flex flex-col overflow-hidden sm:flex-row"
       style={{
         borderColor: isBetween ? "rgba(255,255,255,0.1)" : `${tier.accent}${glow >= 2.4 ? "55" : "30"}`,
         boxShadow: `0 14px 34px rgba(0,0,0,0.4)${
@@ -149,7 +144,7 @@ export default function TierRow({
           mice.map((m) => <MouseCard key={m.id} mouse={m} />)
         )}
       </div>
-    </motion.section>
+    </section>
   );
 }
 

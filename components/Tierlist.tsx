@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo } from "react";
-import { motion } from "framer-motion";
 import { SLOTS } from "@/lib/tiers";
 import { Mouse } from "@/lib/types";
 import TierRow from "./TierRow";
@@ -34,9 +33,7 @@ export default function Tierlist() {
   return (
     <div className="mx-auto w-full max-w-wide px-5 py-6 sm:px-8">
       {/* disclaimer */}
-      <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
+      <div
         className="mb-6 rounded-2xl border border-cheese/25 bg-cheese/[0.07] px-4 py-3 text-center"
         style={{ borderLeft: "3px solid #d7a441" }}
       >
@@ -44,19 +41,17 @@ export default function Tierlist() {
           Tierlist sıralaması değişkendir. Aktif oynanışa göre değil; zamana
           göre genel bir değerlendirmedir!
         </p>
-      </motion.div>
+      </div>
 
       {/* Stats strip */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
+      <div
         className="mb-6 flex flex-wrap items-center justify-center gap-4 text-center sm:justify-between"
       >
         <Stat label="Toplam Fare" value={ready ? String(mice.length) : "…"} accent="#49c0c2" />
         <Stat label="Onaylı Oy" value={ready ? String(totalApproved) : "…"} accent="#d7a441" />
         <Stat label="Bölge" value="Türkiye" accent="#e5646b" />
         <Stat label="Mod" value="Survivor" accent="#9b82f0" />
-      </motion.div>
+      </div>
 
       {/* Ladder */}
       <div className="space-y-4">

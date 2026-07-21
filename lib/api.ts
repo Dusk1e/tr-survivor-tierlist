@@ -38,6 +38,20 @@ export function pingDataChanged() {
   if (typeof window !== "undefined") window.dispatchEvent(new Event(DATA_EVENT));
 }
 
+/**
+ * Önbelleğe takılmayan GET. URL'e benzersiz bir damga eklenir ve tarayıcıya
+ * no-store denir; böylece hiçbir katman (tarayıcı, CDN, Vercel) eski yanıtı
+ * geri veremez. Onaylanan oyların/yetkili değişikliklerinin anında görünmesi
+ * için şart.
+ */
+async function getFresh(path: string): Promise<Response> {
+  const sep = path.includes("?") ? "&" : "?";
+  return fetch(`${path}${sep}_=${Date.now()}`, {
+    cache: "no-store",
+    headers: { "Cache-Control": "no-cache" },
+  });
+}
+
 /* ============================ localStorage io =========================== */
 
 function lsGet<T>(key: string, fallback: T): T {
@@ -108,7 +122,7 @@ function loginName(m: Mouse): string {
 export async function getMice(withPasswords = false): Promise<Mouse[]> {
   if (isCloud) {
     const url = withPasswords ? "/api/mice?full=1" : "/api/mice";
-    const res = await fetch(url, { cache: "no-store" });
+    const res = await getFresh(url);
     if (!res.ok) throw new Error("Liste yüklenemedi");
     return (await res.json()) as Mouse[];
   }
@@ -228,7 +242,7 @@ export async function savePermissions(
 export async function getSession(): Promise<Session | null> {
   if (isCloud) {
     try {
-      const res = await fetch("/api/mouse/me", { cache: "no-store" });
+      const res = await getFresh("/api/mouse/me");
       if (!res.ok) return null;
       const j = await res.json();
       return (j?.session as Session) ?? null;
@@ -301,7 +315,7 @@ export async function getVoteState(
 ): Promise<VoteState> {
   if (isCloud) {
     try {
-      const res = await fetch("/api/votes", { cache: "no-store" });
+      const res = await getFresh("/api/votes");
       if (!res.ok) return { agg: {}, mine: {}, totalApproved: 0 };
       return (await res.json()) as VoteState;
     } catch {
@@ -381,7 +395,7 @@ export async function submitVote(
 /** Full vote log — admin panel & staff with vote_log/vote_approve. */
 export async function getVoteLog(): Promise<Vote[]> {
   if (isCloud) {
-    const res = await fetch("/api/admin/votes", { cache: "no-store" });
+    const res = await getFresh("/api/admin/votes");
     if (!res.ok) throw new Error((await safeMsg(res)) || "Yetkisiz");
     return (await res.json()) as Vote[];
   }
@@ -424,7 +438,7 @@ export async function decideVote(
 export async function getAuthorities(): Promise<string[]> {
   if (isCloud) {
     try {
-      const res = await fetch("/api/authorities", { cache: "no-store" });
+      const res = await getFresh("/api/authorities");
       if (res.ok) return (await res.json()) as string[];
     } catch {}
     return [];
@@ -435,11 +449,12 @@ export async function getAuthorities(): Promise<string[]> {
 
 export async function saveAuthorities(list: string[]): Promise<void> {
   if (isCloud) {
-    await fetch("/api/authorities", {
+    const res = await fetch("/api/authorities", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ list }),
     });
+    if (!res.ok) throw new Error((await safeMsg(res)) || "Yetkililer kaydedilemedi");
     return;
   }
   lsSet(LS_AUTH, list);

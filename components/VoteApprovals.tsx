@@ -36,10 +36,15 @@ export default function VoteApprovals({
     setErr(null);
     try {
       await decideVote(v.id, action, deciderName);
+      // Önce ekrandan kaldır (anında geri bildirim), sonra sunucudan
+      // taze listeyi çekip gerçekten işlendiğini doğrula.
       setVotes((list) => list.filter((x) => x.id !== v.id));
+      const fresh = await getVoteLog();
+      setVotes(fresh.filter((x) => x.status === "pending"));
       onChanged?.();
     } catch (e: any) {
       setErr(e?.message ?? "İşlem başarısız");
+      load(); // hata varsa gerçek durumu geri getir
     } finally {
       setBusyId(null);
     }

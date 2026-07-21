@@ -15,8 +15,7 @@ export default function Footer() {
           <span className="font-display font-bold text-choco/80">
             TR - SURVİVOR TİERLİST
           </span>{" "}
-          · Transformice Survivor topluluğu için hayran yapımıdır. Atelier 801
-          ile bağlantılı değildir.
+          - Atelier 801 ile bağlantılı değildir.
         </p>
         <ModeBadge />
       </div>

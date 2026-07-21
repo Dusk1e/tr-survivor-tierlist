@@ -137,7 +137,7 @@ export default function MouseDetailModal({
             <div className="mb-2 flex items-center justify-between">
               <SectionTitle>Topluluk Puanı</SectionTitle>
               <span className="font-system text-[11px] font-bold uppercase tracking-wider text-choco/45 tabular-nums">
-                {agg ? `${agg.count} onaylı oy` : "oy yok"}
+                {agg && agg.count > 0 ? `${agg.count} onaylı oy` : "başlangıç puanı"}
               </span>
             </div>
 
@@ -158,24 +158,27 @@ export default function MouseDetailModal({
                       </span>
                     </div>
                     <div className="text-xs font-semibold text-choco/50">
-                      3 kategorinin ağırlıklı ortalaması · üst tier oyları daha
-                      etkili
+                      {agg.count > 0
+                        ? "3 kategorinin ağırlıklı ortalaması · üst tier oyları daha etkili"
+                        : "Henüz topluluk oyu yok — gösterilen puan tier başlangıç değeridir."}
                     </div>
                   </div>
                 </div>
 
                 <ScoreBars scores={agg.avg} />
 
-                {/* Hotkey yüzdesi */}
-                <div className="mt-4">
-                  <BinaryStat
-                    label="Hotkey kullandığını düşünenler"
-                    yesPct={agg.hotkeyYesPct}
-                    yes={agg.hotkeyYes}
-                    no={agg.hotkeyNo}
-                    yesColor="#e5646b"
-                  />
-                </div>
+                {/* Hotkey yüzdesi — yalnızca gerçek oy varsa anlamlı */}
+                {agg.count > 0 && (
+                  <div className="mt-4">
+                    <BinaryStat
+                      label="Hotkey kullandığını düşünenler"
+                      yesPct={agg.hotkeyYesPct}
+                      yes={agg.hotkeyYes}
+                      no={agg.hotkeyNo}
+                      yesColor="#e5646b"
+                    />
+                  </div>
+                )}
               </div>
             ) : (
               <div className="rounded-2xl border border-dashed border-white/10 bg-white/[0.02] p-6 text-center font-system text-sm font-semibold text-choco/40">

@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { Mouse, TargetAgg } from "@/lib/types";
 import { tierOf } from "@/lib/tiers";
 import { formatName } from "@/lib/format";
@@ -19,14 +18,10 @@ export default function SystemWindow({
   const tier = tierOf(mouse.tier);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10, scale: 0.96 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: 6, scale: 0.97 }}
-      transition={{ duration: 0.18, ease: "easeOut" }}
-      className="glass-strong sys-window w-[276px] p-4"
+    <div
+      className="glass-strong sys-window w-[268px] p-4"
       style={{
-        boxShadow: `0 0 0 1px ${tier.accent}44, 0 18px 44px rgba(0,0,0,0.6)`,
+        boxShadow: `0 0 0 1px ${tier.accent}3a, 0 16px 40px rgba(0,0,0,0.6)`,
       }}
     >
       <div className="flex items-center gap-3">
@@ -61,7 +56,9 @@ export default function SystemWindow({
         <>
           <ScoreBars scores={agg.avg} compact />
           <div className="mt-2 text-center font-system text-[10px] font-semibold uppercase tracking-wider text-choco/40">
-            {agg.count} onaylı oy · detay için tıkla
+            {agg.count > 0
+              ? `${agg.count} onaylı oy · detay için tıkla`
+              : "Tier başlangıç puanı · detay için tıkla"}
           </div>
         </>
       ) : (
@@ -69,6 +66,6 @@ export default function SystemWindow({
           Henüz onaylı oy yok — ilk sen puanla!
         </div>
       )}
-    </motion.div>
+    </div>
   );
 }

@@ -92,6 +92,8 @@ export interface TierConfig {
   sigil: string;
   /** 0..3 — visual intensity, higher tiers glow more */
   glow: number;
+  /** Bu tier'ın başlangıç puanı (oy yokken gösterilen, oy geldikçe yumuşayan) */
+  baseline: number;
   /** for between slots */
   upper?: TierId;
   lower?: TierId;

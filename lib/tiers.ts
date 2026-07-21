@@ -14,6 +14,7 @@ const MAIN: Omit<TierConfig, "kind">[] = [
     deep: "#f3cf7e",
     sigil: "M",
     glow: 3,
+    baseline: 90,
   },
   {
     id: "s",
@@ -24,6 +25,7 @@ const MAIN: Omit<TierConfig, "kind">[] = [
     deep: "#c4b0fc",
     sigil: "S",
     glow: 2.4,
+    baseline: 79,
   },
   {
     id: "a",
@@ -34,6 +36,7 @@ const MAIN: Omit<TierConfig, "kind">[] = [
     deep: "#8ad2f2",
     sigil: "A",
     glow: 1.8,
+    baseline: 72,
   },
   {
     id: "b",
@@ -44,6 +47,7 @@ const MAIN: Omit<TierConfig, "kind">[] = [
     deep: "#7fd6c6",
     sigil: "B",
     glow: 1.2,
+    baseline: 63,
   },
   {
     id: "c",
@@ -54,6 +58,7 @@ const MAIN: Omit<TierConfig, "kind">[] = [
     deep: "#a3d193",
     sigil: "C",
     glow: 0.7,
+    baseline: 55,
   },
   {
     id: "de",
@@ -64,6 +69,7 @@ const MAIN: Omit<TierConfig, "kind">[] = [
     deep: "#b4bec9",
     sigil: "E",
     glow: 0.3,
+    baseline: 40,
   },
 ];
 
@@ -78,6 +84,7 @@ function between(upper: Omit<TierConfig, "kind">, lower: Omit<TierConfig, "kind"
     deep: upper.deep,
     sigil: "◆",
     glow: (upper.glow + lower.glow) / 2,
+    baseline: 84,
     upper: upper.id as TierId,
     lower: lower.id as TierId,
   };

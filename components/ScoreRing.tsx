@@ -60,12 +60,14 @@ export default function ScoreRing({
         {value == null ? "–" : `${Math.round(pct)}`}
       </span>
 
+      {/* Onaylı oy sayısı — dairenin SAĞ ALTINDA, kırmızı rozet.
+          Tier taban puanı bu sayıya dahil değildir. */}
       {showCount && count != null && count > 0 && (
         <span
-          className="absolute -right-1.5 -top-1.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-1 font-display text-[10px] font-bold text-white"
+          className="absolute -bottom-1.5 -right-1.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-1 font-display text-[10px] font-bold text-white"
           style={{
             background: "#d93a42",
-            boxShadow: "0 2px 6px rgba(0,0,0,0.5)",
+            boxShadow: "0 2px 6px rgba(0,0,0,0.55)",
           }}
           title={`${count} onaylı oy`}
         >

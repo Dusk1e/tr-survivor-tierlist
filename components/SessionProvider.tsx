@@ -96,15 +96,23 @@ export default function SessionProvider({
   useEffect(() => {
     refresh();
     const onChange = () => refresh();
+    // Sekmeye dönüldüğünde anında tazele — bekleme olmasın.
+    const onVisible = () => {
+      if (document.visibilityState === "visible") refresh();
+    };
     window.addEventListener(DATA_EVENT, onChange);
     window.addEventListener("storage", onChange);
     window.addEventListener("focus", onChange);
-    // Cloud mode: light polling keeps everyone in sync.
-    const t = window.setInterval(onChange, 30_000);
+    document.addEventListener("visibilitychange", onVisible);
+    // Yalnızca sekme görünürken yokla (arka planda boşuna istek atma).
+    const t = window.setInterval(() => {
+      if (document.visibilityState === "visible") refresh();
+    }, 12_000);
     return () => {
       window.removeEventListener(DATA_EVENT, onChange);
       window.removeEventListener("storage", onChange);
       window.removeEventListener("focus", onChange);
+      document.removeEventListener("visibilitychange", onVisible);
       window.clearInterval(t);
     };
   }, [refresh]);
