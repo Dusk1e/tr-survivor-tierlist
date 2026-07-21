@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { cloudConfigured, supabaseService, MICE_TABLE } from "@/lib/supabase";
+import { authorityDebug } from "@/lib/store";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -63,6 +64,7 @@ export async function GET(req: Request) {
       info.yetkililer = real.error
         ? { hata: real.error.message, kod: real.error.code ?? null }
         : ((real.data ?? []) as { name: string }[]).map((r) => r.name);
+      info.sonYetkiliIslemi = authorityDebug.son;
 
       // Hangi sorgu bicimi bu tabloda patliyor? (salt-okunur test)
       const [ordered, filtered] = await Promise.all([

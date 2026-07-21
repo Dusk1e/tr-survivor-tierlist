@@ -1,11 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ADMIN_COOKIE, verifySessionToken } from "@/lib/auth";
 import { cloudConfigured } from "@/lib/supabase";
-import { listAuthorities, setAuthorities } from "@/lib/store";
+import { addAuthority, listAuthorities, removeAuthority } from "@/lib/store";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+function yetkiliMi(req: NextRequest): boolean {
+  return verifySessionToken(req.cookies.get(ADMIN_COOKIE)?.value);
+}
+
+async function isimAl(req: NextRequest): Promise<string | null> {
+  try {
+    const body = await req.json();
+    const n = String(body?.name ?? "").trim();
+    return n || null;
+  } catch {
+    return null;
+  }
+}
+
+/** Herkese açık okuma. */
 export async function GET() {
   if (!cloudConfigured) return NextResponse.json([]);
   try {
@@ -20,26 +35,50 @@ export async function GET() {
   }
 }
 
-export async function PUT(req: NextRequest) {
+/**
+ * TEK isim ekle. Güncel listeyi döner, böylece panelin ayrıca okuma
+ * yapmasına gerek kalmaz — yarış durumu ihtimali tamamen ortadan kalkar.
+ *
+ * Eski PUT (tüm listeyi gönder, eksikleri sil) kaldırıldı: panelin listesi
+ * bir an eksik olduğunda yeni eklenen isim kendi kendine siliniyordu.
+ */
+export async function POST(req: NextRequest) {
   if (!cloudConfigured)
-    return NextResponse.json({ error: "Cloud not configured" }, { status: 501 });
-  if (!verifySessionToken(req.cookies.get(ADMIN_COOKIE)?.value))
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Cloud yapılandırılmamış" }, { status: 501 });
+  if (!yetkiliMi(req))
+    return NextResponse.json({ error: "Oturum doğrulanamadı" }, { status: 401 });
 
-  let list: string[] = [];
-  try {
-    const body = await req.json();
-    list = Array.isArray(body?.list)
-      ? body.list.map((s: any) => String(s).trim()).filter(Boolean).slice(0, 50)
-      : [];
-  } catch {
-    return NextResponse.json({ error: "Geçersiz istek" }, { status: 400 });
-  }
+  const name = await isimAl(req);
+  if (!name)
+    return NextResponse.json({ error: "İsim boş olamaz" }, { status: 400 });
 
   try {
-    await setAuthorities(list);
-    return NextResponse.json({ ok: true });
+    return NextResponse.json(await addAuthority(name));
   } catch (e: any) {
-    return NextResponse.json({ error: e?.message ?? "Hata" }, { status: 500 });
+    return NextResponse.json(
+      { error: e?.message ?? "Eklenemedi" },
+      { status: 500 }
+    );
+  }
+}
+
+/** TEK isim sil. Güncel listeyi döner. */
+export async function DELETE(req: NextRequest) {
+  if (!cloudConfigured)
+    return NextResponse.json({ error: "Cloud yapılandırılmamış" }, { status: 501 });
+  if (!yetkiliMi(req))
+    return NextResponse.json({ error: "Oturum doğrulanamadı" }, { status: 401 });
+
+  const name = await isimAl(req);
+  if (!name)
+    return NextResponse.json({ error: "İsim boş olamaz" }, { status: 400 });
+
+  try {
+    return NextResponse.json(await removeAuthority(name));
+  } catch (e: any) {
+    return NextResponse.json(
+      { error: e?.message ?? "Silinemedi" },
+      { status: 500 }
+    );
   }
 }

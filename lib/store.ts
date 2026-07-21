@@ -254,45 +254,47 @@ export async function listAuthorities(): Promise<string[]> {
 }
 
 /**
- * Yetkili listesini güncelle. ÖNCE ekler, SONRA fazlalıkları siler —
- * böylece araya bir hata girerse liste asla tamamen boşalmaz.
- * (Eski hâli önce hepsini siliyordu; ekleme başarısız olunca liste uçuyordu.)
+ * Son yetkili işleminin izi — teşhis için. /api/health içinde görünür.
+ * Sunucu belleğinde tutulur, kalıcı değildir, gizli bilgi içermez.
  */
-export async function setAuthorities(list: string[]): Promise<void> {
-  const c = db();
-  const clean = Array.from(
-    new Map(list.map((n) => [n.trim().toLowerCase(), n.trim()])).values()
-  ).filter(Boolean);
+export const authorityDebug: { son: unknown } = { son: null };
 
-  // 1) Yenileri ekle (zaten varsa dokunma)
-  if (clean.length) {
-    const { error } = await c
-      .from(AUTHORITIES_TABLE)
-      .upsert(clean.map((name) => ({ name })), { onConflict: "name" });
-    if (error)
-      throw new Error(`Ekleme basarisiz (adim 1/3): ${error.message}`);
-  }
+/**
+ * TEK isim ekler ve güncel listeyi döner.
+ *
+ * ÖNEMLİ: Burada "listede olmayanı sil" mantığı YOKTUR. Eski tasarım panelden
+ * tüm listeyi alıp eksikleri siliyordu; panelin listesi bir an için eksik
+ * olduğunda (yavaş okuma, yarış durumu, eski sekme) yeni eklenen isim
+ * saniyeler içinde kendi kendine siliniyordu. Artık ekleme sadece ekler.
+ */
+export async function addAuthority(name: string): Promise<string[]> {
+  const clean = name.trim().slice(0, 30);
+  if (!clean) throw new Error("İsim boş olamaz");
 
-  // 2) Mevcut listeyi oku
-  const { data: current, error: readErr } = await c
+  const { error } = await db()
     .from(AUTHORITIES_TABLE)
-    .select("name");
-  if (readErr)
-    throw new Error(`Liste okunamadi (adim 2/3): ${readErr.message}`);
+    .upsert([{ name: clean }], { onConflict: "name" });
+  if (error) throw new Error(`"${clean}" eklenemedi: ${error.message}`);
 
-  const keep = new Set(clean.map((n) => n.toLowerCase()));
-  const remove = ((current ?? []) as { name: string }[])
-    .map((r) => r?.name ?? "")
-    .filter((n) => n && !keep.has(n.trim().toLowerCase()));
+  const list = await listAuthorities();
+  authorityDebug.son = { islem: "ekle", isim: clean, sonucListe: list };
+  return list;
+}
 
-  // 3) Fazlalikları sil — TEK TEK eq() ile. Toplu .in("name", […]) filtresi
-  //    bu tabloda güvenilir çalışmıyor (aynı aileden .order("name") de
-  //    sessizce hata döndürüyordu), o yüzden isim başına tek silme yapıyoruz.
-  for (const n of remove) {
-    const { error } = await c.from(AUTHORITIES_TABLE).delete().eq("name", n);
-    if (error)
-      throw new Error(`"${n}" silinemedi (adim 3/3): ${error.message}`);
-  }
+/** TEK isim siler ve güncel listeyi döner. */
+export async function removeAuthority(name: string): Promise<string[]> {
+  const clean = name.trim();
+  if (!clean) throw new Error("İsim boş olamaz");
+
+  const { error } = await db()
+    .from(AUTHORITIES_TABLE)
+    .delete()
+    .eq("name", clean);
+  if (error) throw new Error(`"${clean}" silinemedi: ${error.message}`);
+
+  const list = await listAuthorities();
+  authorityDebug.son = { islem: "sil", isim: clean, sonucListe: list };
+  return list;
 }
 
 /* ============================ oy bakımı ================================= */

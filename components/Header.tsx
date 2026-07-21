@@ -7,7 +7,7 @@ import { motion } from "framer-motion";
  * (e.g. an "Admin" link on the public page, or "Logout" on the dashboard).
  */
 export default function Header({
-  subtitle = "Tüm Nesillerin TR Survivor Saygı Listesi",
+  subtitle = "Tüm Nesillerin TR Survivor Saygı ve Güç Listesi",
   right,
 }: {
   subtitle?: string;

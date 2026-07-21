@@ -478,28 +478,63 @@ export async function getAuthorities(): Promise<string[]> {
   return Array.isArray(list) ? list : DEFAULT_AUTHORITIES;
 }
 
-export async function saveAuthorities(list: string[]): Promise<void> {
-  if (isCloud) {
-    const res = await fetch("/api/authorities", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ list }),
-      cache: "no-store",
-    });
-    if (res.ok) return;
-    // Hata mesajı NET olsun — "Unauthorized" gibi kapalı bir metin yerine
-    // ne yapılması gerektiğini söyleyen Türkçe mesaj döndür.
-    if (res.status === 401)
-      throw new Error(
-        "Oturumun sona ermiş. Sayfayı yenileyip tekrar giriş yap, sonra dene."
-      );
-    const msg = await safeMsg(res);
+/**
+ * Yetkili ekle/sil — TEK isim üzerinden. Sunucu işlemden sonra güncel
+ * listeyi döndürür, o yüzden ayrıca okuma yapmıyoruz: eskiden yazma ile
+ * okuma arasındaki boşlukta liste eski hâline dönebiliyordu.
+ */
+async function authorityOp(
+  method: "POST" | "DELETE",
+  name: string
+): Promise<string[]> {
+  const res = await fetch("/api/authorities", {
+    method,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name }),
+    cache: "no-store",
+  });
+  if (res.status === 401)
     throw new Error(
-      `Kaydedilemedi (HTTP ${res.status})${msg ? " — " + msg : ""}`
+      "Oturumun sona ermiş. Sayfayı yenileyip tekrar giriş yap, sonra dene."
     );
+  if (!res.ok) {
+    const msg = await safeMsg(res);
+    const ne = method === "POST" ? "Eklenemedi" : "Silinemedi";
+    throw new Error(`${ne} (HTTP ${res.status})${msg ? " — " + msg : ""}`);
   }
-  lsSet(LS_AUTH, list);
+  const json = await res.json();
+  if (!Array.isArray(json))
+    throw new Error("Sunucu beklenmeyen bir yanıt döndü");
+  return json as string[];
+}
+
+function lsAuthorities(): string[] {
+  const list = lsGet<string[]>(LS_AUTH, DEFAULT_AUTHORITIES);
+  return Array.isArray(list) ? list : DEFAULT_AUTHORITIES;
+}
+
+const trKey = (s: string) => s.trim().toLocaleLowerCase("tr");
+
+export async function addAuthority(name: string): Promise<string[]> {
+  const n = name.trim();
+  if (!n) throw new Error("İsim boş olamaz");
+  if (isCloud) return authorityOp("POST", n);
+
+  const next = [...lsAuthorities().filter((x) => trKey(x) !== trKey(n)), n];
+  lsSet(LS_AUTH, next);
   pingDataChanged();
+  return next;
+}
+
+export async function removeAuthority(name: string): Promise<string[]> {
+  const n = name.trim();
+  if (!n) throw new Error("İsim boş olamaz");
+  if (isCloud) return authorityOp("DELETE", n);
+
+  const next = lsAuthorities().filter((x) => trKey(x) !== trKey(n));
+  lsSet(LS_AUTH, next);
+  pingDataChanged();
+  return next;
 }
 
 /* ================================ util ================================== */

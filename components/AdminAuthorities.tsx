@@ -1,7 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { getAuthorities, pingDataChanged, saveAuthorities } from "@/lib/api";
+import {
+  addAuthority,
+  getAuthorities,
+  pingDataChanged,
+  removeAuthority,
+} from "@/lib/api";
 import { formatName } from "@/lib/format";
 
 /** Site altındaki "Yetkililer" isim listesinin yönetimi. */
@@ -27,26 +32,26 @@ export default function AdminAuthorities() {
     load();
   }, [load]);
 
-  /** Kaydet → sunucudan taze listeyi çek → gerçekten işlendiğini doğrula. */
-  async function persist(next: string[]) {
+  /**
+   * Tek isim ekle/sil. Sunucu işlem sonrası GÜNCEL listeyi döndürür, biz de
+   * doğrudan onu gösteririz — ayrı bir okuma yapılmadığı için "eklendi sonra
+   * kayboldu" yaratan yarış durumu artık mümkün değil.
+   */
+  async function run(op: () => Promise<string[]>) {
     setBusy(true);
     setErr(null);
-    const previous = list;
-    setList(next); // anında geri bildirim
     try {
-      await saveAuthorities(next);
-      const fresh = await getAuthorities();
-      setList(fresh);
+      setList(await op());
       pingDataChanged(); // footer anında güncellensin
     } catch (e: any) {
-      setList(previous); // başarısızsa geri al
-      setErr(e?.message ?? "Kaydedilemedi");
+      setErr(e?.message ?? "İşlem başarısız");
+      await load(); // ekran sunucudaki gerçek durumu göstersin
     } finally {
       setBusy(false);
     }
   }
 
-  function add(e: React.FormEvent) {
+  async function add(e: React.FormEvent) {
     e.preventDefault();
     const n = name.trim();
     if (!n) return;
@@ -57,14 +62,8 @@ export default function AdminAuthorities() {
       setErr(`"${dup}" zaten listede — aynı isim iki kez eklenemez.`);
       return; // input'u TEMIZLEME, kullanici ne yazdigini gorsun
     }
-    persist([...list, n]);
     setName("");
-  }
-
-  /** Silme — bosluk/buyuk-kucuk harf farkina takilmadan dogru satiri atar. */
-  function remove(target: string) {
-    const key = target.trim().toLocaleLowerCase("tr");
-    persist(list.filter((x) => x.trim().toLocaleLowerCase("tr") !== key));
+    await run(() => addAuthority(n));
   }
 
   return (
@@ -127,7 +126,7 @@ export default function AdminAuthorities() {
               <button
                 type="button"
                 disabled={busy}
-                onClick={() => remove(n)}
+                onClick={() => run(() => removeAuthority(n))}
                 className="flex h-5 w-5 items-center justify-center rounded-full bg-white/10 text-choco/70 transition hover:bg-red-500/70 hover:text-white disabled:opacity-40"
                 aria-label={`${n} kaldır`}
               >
