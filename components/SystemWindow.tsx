@@ -37,9 +37,21 @@ export default function SystemWindow({
           <div className="truncate font-display text-base font-bold text-choco">
             {formatName(mouse.nickname)}
           </div>
+          {/* Ünvan — varsa tier rengiyle parlar, rütbe altına düşer. */}
+          {mouse.title && (
+            <div
+              className="truncate font-display text-[12px] font-bold uppercase leading-tight tracking-[0.06em]"
+              style={{
+                color: tier.deep,
+                textShadow: `0 0 10px ${tier.accent}88`,
+              }}
+              title={mouse.title}
+            >
+              {mouse.title}
+            </div>
+          )}
           <div
-            className="font-system text-[10px] font-bold uppercase tracking-wider"
-            style={{ color: tier.deep }}
+            className="font-system text-[10px] font-bold uppercase tracking-wider text-choco/45"
           >
             {tier.label}
           </div>

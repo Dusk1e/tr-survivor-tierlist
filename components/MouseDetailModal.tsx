@@ -106,27 +106,36 @@ export default function MouseDetailModal({
                 <div className="truncate font-display text-2xl font-bold tracking-tight text-choco">
                   {formatName(mouse.nickname)}
                 </div>
+                {/* Ünvan — kartın en dikkat çeken satırı olmalı. Tier rengiyle
+                    parlar, büyük harf ve geniş harf aralığıyla yazılır. */}
                 {mouse.title && (
-                  <div className="truncate text-sm font-semibold text-choco/60">
+                  <div
+                    className="mt-1 truncate font-display text-[15px] font-bold uppercase leading-tight tracking-[0.08em] sm:text-lg"
+                    style={{
+                      color: tier.deep,
+                      textShadow: `0 0 14px ${tier.accent}88, 0 1px 2px rgba(0,0,0,0.6)`,
+                    }}
+                    title={mouse.title}
+                  >
                     {mouse.title}
                   </div>
                 )}
-                <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                  <Chip color={tier.deep} bg={`${tier.accent}22`} border={`${tier.accent}66`}>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <Chip color={tier.deep} bg={`${tier.accent}38`} border={`${tier.accent}aa`}>
                     {tier.label}
                   </Chip>
                   {/* Puan bölgesi etiketi (İyi/Kötü…) Aşk Köşesi'nde gösterilmez. */}
                   {overallZone && !isLove && (
                     <Chip
                       color={overallZone.color}
-                      bg={`${overallZone.color}1c`}
-                      border={`${overallZone.color}55`}
+                      bg={`${overallZone.color}30`}
+                      border={`${overallZone.color}99`}
                     >
                       {overallZone.label}
                     </Chip>
                   )}
                   {mine && (
-                    <Chip color="#6ee7a0" bg="rgba(74,222,128,0.12)" border="rgba(74,222,128,0.4)">
+                    <Chip color="#8ff0b8" bg="rgba(74,222,128,0.24)" border="rgba(74,222,128,0.7)">
                       Bu Sensin
                     </Chip>
                   )}
@@ -324,8 +333,14 @@ function Chip({
 }) {
   return (
     <span
-      className="inline-block rounded-lg px-2 py-0.5 font-display text-[10px] font-bold uppercase tracking-wider"
-      style={{ color, background: bg, border: `1px solid ${border}` }}
+      className="inline-block rounded-lg px-2.5 py-1 font-display text-[11px] font-bold uppercase tracking-[0.1em] sm:text-xs"
+      style={{
+        color,
+        background: bg,
+        border: `1.5px solid ${border}`,
+        boxShadow: `0 0 12px ${border}, inset 0 1px 0 rgba(255,255,255,0.08)`,
+        textShadow: `0 0 10px ${color}66`,
+      }}
     >
       {children}
     </span>
