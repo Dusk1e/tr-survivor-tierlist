@@ -38,6 +38,7 @@ export default function MouseDetailModal({
 
   if (!mouse) return null;
   const tier = tierOf(mouse.tier);
+  const isLove = tier.shape === "heart";
   const agg = aggFor(mouse.id);
   const mine = isMe(mouse.id);
   const myVote = myVoteFor(mouse.id);
@@ -114,7 +115,8 @@ export default function MouseDetailModal({
                   <Chip color={tier.deep} bg={`${tier.accent}22`} border={`${tier.accent}66`}>
                     {tier.label}
                   </Chip>
-                  {overallZone && (
+                  {/* Puan bölgesi etiketi (İyi/Kötü…) Aşk Köşesi'nde gösterilmez. */}
+                  {overallZone && !isLove && (
                     <Chip
                       color={overallZone.color}
                       bg={`${overallZone.color}1c`}
@@ -134,6 +136,11 @@ export default function MouseDetailModal({
 
             <div className="my-4 hairline" />
 
+            {/* Aşk Köşesi puanlanmaz — istatistik ve oylama bölümü gizlenir. */}
+            {isLove ? (
+              <LoveNote accent={tier.accent} deep={tier.deep} />
+            ) : (
+            <>
             {/* İstatistikler */}
             <div className="mb-2 flex items-center justify-between">
               <SectionTitle>Topluluk Puanı</SectionTitle>
@@ -254,10 +261,42 @@ export default function MouseDetailModal({
                 onSubmit={handleSubmit}
               />
             )}
+            </>
+            )}
           </motion.div>
         </motion.div>
       )}
     </AnimatePresence>
+  );
+}
+
+/** Aşk Köşesi'ndeki fare için puan yerine gösterilen pembe kart. */
+function LoveNote({ accent, deep }: { accent: string; deep: string }) {
+  return (
+    <div
+      className="rounded-2xl border p-6 text-center"
+      style={{
+        borderColor: `${accent}55`,
+        background: `linear-gradient(135deg, ${accent}18, ${accent}06)`,
+      }}
+    >
+      <span className="heart-beat mx-auto mb-2 block w-fit">
+        <svg viewBox="0 0 100 100" width={42} height={42}>
+          <path
+            d="M50,89 C50,89 9,61 9,36 C9,20 21,10 33,10 C41,10 47,15 50,21 C53,15 59,10 67,10 C79,10 91,20 91,36 C91,61 50,89 50,89 Z"
+            fill={accent}
+            stroke="rgba(255,255,255,0.45)"
+            strokeWidth="4"
+          />
+        </svg>
+      </span>
+      <div className="font-display text-lg font-bold" style={{ color: deep }}>
+        Aşk Köşesi
+      </div>
+      <p className="mt-1 text-sm font-semibold text-choco/55">
+        Burada puan yok, puanlama yok. Sadece kalp var.
+      </p>
+    </div>
   );
 }
 

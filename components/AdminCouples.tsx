@@ -18,7 +18,8 @@ export default function AdminCouples({
   const [mice, setMice] = useState<Mouse[]>([]);
   const [a, setA] = useState("");
   const [b, setB] = useState("");
-  const [tasi, setTasi] = useState(true);
+  // Varsayılan KAPALI: eşleştirme kimseyi rankından çıkarmaz.
+  const [tasi, setTasi] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -122,7 +123,7 @@ export default function AdminCouples({
         />
         İkisini de Aşk Köşesi bandına taşı
         <span className="text-choco/35">
-          (kapalıysa herkes kendi rankında kalır)
+          (dikkat: rank&apos;larından çıkarılırlar ve puanları görünmez olur)
         </span>
       </label>
 

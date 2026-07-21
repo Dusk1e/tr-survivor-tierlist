@@ -16,6 +16,8 @@ export default function SystemWindow({
   agg: TargetAgg | null;
 }) {
   const tier = tierOf(mouse.tier);
+  // Aşk Köşesi puanlanmaz — orada puan yerine kalp gösterilir.
+  const isLove = tier.shape === "heart";
 
   return (
     <div
@@ -42,17 +44,33 @@ export default function SystemWindow({
             {tier.label}
           </div>
         </div>
-        <ScoreRing
-          value={agg ? agg.overall : null}
-          count={agg?.count}
-          size={42}
-          stroke={4}
-        />
+        {isLove ? (
+          <svg viewBox="0 0 100 100" width={26} height={26} className="shrink-0">
+            <path
+              d="M50,89 C50,89 9,61 9,36 C9,20 21,10 33,10 C41,10 47,15 50,21 C53,15 59,10 67,10 C79,10 91,20 91,36 C91,61 50,89 50,89 Z"
+              fill={tier.accent}
+            />
+          </svg>
+        ) : (
+          <ScoreRing
+            value={agg ? agg.overall : null}
+            count={agg?.count}
+            size={42}
+            stroke={4}
+          />
+        )}
       </div>
 
       <div className="my-3 hairline" />
 
-      {agg ? (
+      {isLove ? (
+        <div
+          className="py-1 text-center font-system text-xs font-semibold"
+          style={{ color: tier.deep }}
+        >
+          Aşk Köşesi — burada puan yok, sadece kalp var.
+        </div>
+      ) : agg ? (
         <>
           <ScoreBars scores={agg.avg} compact />
           <div className="mt-2 text-center font-system text-[10px] font-semibold uppercase tracking-wider text-choco/40">

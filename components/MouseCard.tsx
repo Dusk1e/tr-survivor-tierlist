@@ -19,6 +19,7 @@ import { useSession } from "./SessionProvider";
  */
 export default function MouseCard({ mouse }: { mouse: Mouse }) {
   const tier = tierOf(mouse.tier);
+  const isLove = tier.shape === "heart";
   const { isMe, aggFor, openDetail } = useSession();
   const mine = isMe(mouse.id);
   const agg = aggFor(mouse.id);
@@ -98,14 +99,18 @@ export default function MouseCard({ mouse }: { mouse: Mouse }) {
               <span className="absolute left-1 top-1 h-2.5 w-2.5 rounded-full bg-green-500 ring-2 ring-[#151b24]" />
             )}
           </div>
-          {/* Genel puan — sağ altında kırmızı onaylı oy sayacı */}
+          {/* Aşk Köşesi'nde puan yoktur — puanın yerini kalp alır. */}
           <div className="absolute -bottom-2 -right-3">
-            <ScoreRing
-              value={agg ? agg.overall : null}
-              count={agg?.count}
-              size={38}
-              stroke={4}
-            />
+            {isLove ? (
+              <HeartBadge accent={tier.accent} />
+            ) : (
+              <ScoreRing
+                value={agg ? agg.overall : null}
+                count={agg?.count}
+                size={38}
+                stroke={4}
+              />
+            )}
           </div>
         </div>
 
@@ -139,5 +144,27 @@ export default function MouseCard({ mouse }: { mouse: Mouse }) {
           document.body
         )}
     </div>
+  );
+}
+
+/** Aşk Köşesi rozeti — puan halkasının yerine geçen pembe kalp. */
+function HeartBadge({ accent }: { accent: string }) {
+  return (
+    <span
+      className="flex h-[38px] w-[38px] items-center justify-center rounded-full border-2"
+      style={{
+        borderColor: `${accent}88`,
+        background: "#151b24",
+        boxShadow: `0 0 12px ${accent}55`,
+      }}
+      aria-label="Aşk Köşesi"
+    >
+      <svg viewBox="0 0 100 100" width={19} height={19}>
+        <path
+          d="M50,89 C50,89 9,61 9,36 C9,20 21,10 33,10 C41,10 47,15 50,21 C53,15 59,10 67,10 C79,10 91,20 91,36 C91,61 50,89 50,89 Z"
+          fill={accent}
+        />
+      </svg>
+    </span>
   );
 }
