@@ -67,7 +67,13 @@ export async function listMice(includePasswords: boolean): Promise<Mouse[]> {
 }
 
 export async function getMouse(id: string): Promise<Mouse | null> {
-  const { data } = await db().from(MICE_TABLE).select("*").eq("id", id).single();
+  // maybeSingle: 0 satır = null (hata değil). Gerçek hatalar artık yutulmuyor.
+  const { data, error } = await db()
+    .from(MICE_TABLE)
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+  if (error) throw new Error(`Fare okunamadı: ${error.message}`);
   return data ? rowToMouse(data) : null;
 }
 
@@ -122,7 +128,8 @@ export async function findMouseByCredentials(
   password: string
 ): Promise<Mouse | null> {
   const uname = username.trim().toLowerCase();
-  const { data } = await db().from(MICE_TABLE).select("*");
+  const { data, error } = await db().from(MICE_TABLE).select("*");
+  if (error) throw new Error(`Fareler okunamadı: ${error.message}`);
   const rows = (data ?? []).map(rowToMouse);
   return (
     rows.find(
@@ -225,11 +232,16 @@ export async function decideVote(
 /* ============================= authorities ============================= */
 
 export async function listAuthorities(): Promise<string[]> {
-  const { data } = await db()
-    .from(AUTHORITIES_TABLE)
-    .select("name")
-    .order("name");
-  return ((data ?? []) as { name: string }[]).map((r) => r.name);
+  // NOT: Sıralamayı Postgres'e YAPTIRMIYORUZ. `.order("name")` bu tabloda
+  // sessizce hata döndürüyordu; hata yutulunca liste boş görünüyor ve
+  // "eklendi, sonra silindi" gibi algılanıyordu. Sıralama artık JS tarafında,
+  // Türkçe alfabeye göre yapılıyor.
+  const { data, error } = await db().from(AUTHORITIES_TABLE).select("name");
+  if (error) throw new Error(`Yetkililer okunamadı: ${error.message}`);
+  return ((data ?? []) as { name: string }[])
+    .map((r) => (r?.name ?? "").trim())
+    .filter(Boolean)
+    .sort((a, b) => a.localeCompare(b, "tr"));
 }
 
 /**

@@ -55,6 +55,13 @@ export async function GET() {
         oy_bekleyen: pending.count ?? 0,
         yetkili: auth.count ?? 0,
       };
+
+      // Sayım (HEAD) çalışıp gerçek okuma çalışmayabiliyor. Bu yüzden
+      // yetkilileri GERÇEKTEN okuyup sonucu (ya da hatayı) buraya yazıyoruz.
+      const real = await c.from("authorities").select("name");
+      info.yetkililer = real.error
+        ? { hata: real.error.message, kod: real.error.code ?? null }
+        : ((real.data ?? []) as { name: string }[]).map((r) => r.name);
     }
   } catch (e: any) {
     info.veritabani = "HATA";

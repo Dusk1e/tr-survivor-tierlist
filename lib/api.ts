@@ -467,11 +467,12 @@ export async function purgeAllVotes(): Promise<number> {
 
 export async function getAuthorities(): Promise<string[]> {
   if (isCloud) {
-    try {
-      const res = await getFresh("/api/authorities");
-      if (res.ok) return (await res.json()) as string[];
-    } catch {}
-    return [];
+    // Hatayı YUTMA. Eskiden her hata sessizce [] dönüyordu; panel de
+    // "Henüz yetkili eklenmemiş" gösteriyordu. Artık gerçek sebep görünür.
+    const res = await getFresh("/api/authorities");
+    if (!res.ok) throw new Error((await safeMsg(res)) || "Yetkililer okunamadı");
+    const json = await res.json();
+    return Array.isArray(json) ? (json as string[]) : [];
   }
   const list = lsGet<string[]>(LS_AUTH, DEFAULT_AUTHORITIES);
   return Array.isArray(list) ? list : DEFAULT_AUTHORITIES;
