@@ -23,10 +23,10 @@ import {
  * this browser's localStorage (demo).
  */
 
-const LS_MICE = "tst_mice_v4";
-const LS_VOTES = "tst_votes_v6"; // v6: 3 kategori + hotkey sorusu
-const LS_SESSION = "tst_session_v2";
-const LS_AUTH = "tst_authorities_v1";
+const LS_MICE = "tst_mice_v5";
+const LS_VOTES = "tst_votes_v7";
+const LS_SESSION = "tst_session_v3";
+const LS_AUTH = "tst_authorities_v2";
 
 const DEFAULT_AUTHORITIES = ["Alwesh", "Blacklean"];
 
