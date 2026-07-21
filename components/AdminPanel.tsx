@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { getVoteLog } from "@/lib/api";
+import { getVoteLog, purgeAllVotes } from "@/lib/api";
 import RosterManager from "./RosterManager";
 import VoteApprovals from "./VoteApprovals";
 import VoteLog from "./VoteLog";
@@ -113,7 +113,10 @@ export default function AdminPanel({ onLogout }: { onLogout: () => void }) {
       )}
 
       {tab === "approvals" && (
-        <VoteApprovals deciderName="Admin" onChanged={refreshPending} />
+        <>
+          <PurgeVotesBar onDone={refreshPending} onToast={pushToast} />
+          <VoteApprovals deciderName="Admin" onChanged={refreshPending} />
+        </>
       )}
 
       {tab === "log" && <VoteLog />}
@@ -149,5 +152,59 @@ function TabButton({
     >
       {children}
     </button>
+  );
+}
+
+/** Tüm oyları silme çubuğu — iki adımlı onay ister. */
+function PurgeVotesBar({
+  onDone,
+  onToast,
+}: {
+  onDone: () => void;
+  onToast: (msg: string, kind?: "ok" | "err") => void;
+}) {
+  const [confirming, setConfirming] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  async function purge() {
+    setBusy(true);
+    try {
+      const n = await purgeAllVotes();
+      onToast(`${n} oy silindi. Puanlar tier başlangıç değerlerine döndü.`);
+      setConfirming(false);
+      onDone();
+    } catch (e: any) {
+      onToast(e?.message ?? "Silinemedi", "err");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="glass mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl px-4 py-3">
+      <div>
+        <div className="font-system text-sm font-bold text-choco">
+          Tüm oyları sil
+        </div>
+        <div className="text-xs font-medium text-choco/45">
+          Bekleyen ve onaylanmış bütün puanlamaları kaldırır. Geri alınamaz.
+        </div>
+      </div>
+      {confirming ? (
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-bold text-red-400">Emin misin?</span>
+          <button onClick={purge} disabled={busy} className="btn-danger px-3 py-1.5 text-xs disabled:opacity-50">
+            {busy ? "Siliniyor…" : "Evet, hepsini sil"}
+          </button>
+          <button onClick={() => setConfirming(false)} className="btn-ghost px-3 py-1.5 text-xs">
+            Vazgeç
+          </button>
+        </div>
+      ) : (
+        <button onClick={() => setConfirming(true)} className="btn-danger px-3 py-1.5 text-xs">
+          Oyları Sıfırla
+        </button>
+      )}
+    </div>
   );
 }

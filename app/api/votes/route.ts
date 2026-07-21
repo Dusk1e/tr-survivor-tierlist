@@ -27,6 +27,7 @@ export async function GET(req: NextRequest) {
         for (const v of votes) {
           if (v.voter_id === me.id)
             mine[v.target_id] = {
+              id: v.id,
               status: v.status,
               scores: v.scores,
               hotkey: v.hotkey,

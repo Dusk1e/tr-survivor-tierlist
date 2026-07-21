@@ -6,7 +6,7 @@ import {
   verifySessionToken,
 } from "@/lib/auth";
 import { cloudConfigured } from "@/lib/supabase";
-import { listVotes, mouseHasPerm } from "@/lib/store";
+import { listVotes, mouseHasPerm, purgeVotes } from "@/lib/store";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -33,6 +33,24 @@ export async function GET(req: NextRequest) {
   } catch (e: any) {
     return NextResponse.json(
       { error: e?.message ?? "Yüklenemedi" },
+      { status: 500 }
+    );
+  }
+}
+
+/** DELETE — TÜM oyları siler. Sadece admin. */
+export async function DELETE(req: NextRequest) {
+  if (!cloudConfigured)
+    return NextResponse.json({ error: "Cloud yapılandırılmamış" }, { status: 501 });
+  if (!verifySessionToken(req.cookies.get(ADMIN_COOKIE)?.value))
+    return NextResponse.json({ error: "Yetkisiz" }, { status: 401 });
+
+  try {
+    const silinen = await purgeVotes();
+    return NextResponse.json({ ok: true, silinen });
+  } catch (e: any) {
+    return NextResponse.json(
+      { error: e?.message ?? "Silinemedi" },
       { status: 500 }
     );
   }

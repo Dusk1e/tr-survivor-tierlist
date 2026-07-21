@@ -1,4 +1,3 @@
-import ModeBadge from "./ModeBadge";
 import Authorities from "./Authorities";
 
 export default function Footer() {
@@ -17,7 +16,6 @@ export default function Footer() {
           </span>{" "}
           - Atelier 801 ile bağlantılı değildir.
         </p>
-        <ModeBadge />
       </div>
     </footer>
   );

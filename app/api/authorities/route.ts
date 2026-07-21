@@ -10,8 +10,13 @@ export async function GET() {
   if (!cloudConfigured) return NextResponse.json([]);
   try {
     return NextResponse.json(await listAuthorities());
-  } catch {
-    return NextResponse.json([]);
+  } catch (e: any) {
+    // Hatayı YUTMA — eskiden boş liste dönüyordu ve "yetkililer silindi"
+    // gibi görünüyordu. Artık gerçek sebep görünür.
+    return NextResponse.json(
+      { error: e?.message ?? "Yetkililer okunamadı" },
+      { status: 500 }
+    );
   }
 }
 

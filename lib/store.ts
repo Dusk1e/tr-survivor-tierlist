@@ -232,15 +232,75 @@ export async function listAuthorities(): Promise<string[]> {
   return ((data ?? []) as { name: string }[]).map((r) => r.name);
 }
 
+/**
+ * Yetkili listesini güncelle. ÖNCE ekler, SONRA fazlalıkları siler —
+ * böylece araya bir hata girerse liste asla tamamen boşalmaz.
+ * (Eski hâli önce hepsini siliyordu; ekleme başarısız olunca liste uçuyordu.)
+ */
 export async function setAuthorities(list: string[]): Promise<void> {
   const c = db();
-  await c.from(AUTHORITIES_TABLE).delete().neq("name", "");
-  if (list.length) {
+  const clean = Array.from(
+    new Map(list.map((n) => [n.trim().toLowerCase(), n.trim()])).values()
+  ).filter(Boolean);
+
+  // 1) Yenileri ekle (zaten varsa dokunma)
+  if (clean.length) {
     const { error } = await c
       .from(AUTHORITIES_TABLE)
-      .insert(list.map((name) => ({ name })));
-    if (error) throw new Error(error.message);
+      .upsert(clean.map((name) => ({ name })), { onConflict: "name" });
+    if (error) throw new Error(`Yetkili eklenemedi: ${error.message}`);
   }
+
+  // 2) Listede olmayanları sil
+  const { data: current, error: readErr } = await c
+    .from(AUTHORITIES_TABLE)
+    .select("name");
+  if (readErr) throw new Error(`Yetkililer okunamadı: ${readErr.message}`);
+
+  const keep = new Set(clean.map((n) => n.toLowerCase()));
+  const remove = ((current ?? []) as { name: string }[])
+    .map((r) => r.name)
+    .filter((n) => !keep.has(n.trim().toLowerCase()));
+
+  if (remove.length) {
+    const { error } = await c
+      .from(AUTHORITIES_TABLE)
+      .delete()
+      .in("name", remove);
+    if (error) throw new Error(`Yetkili silinemedi: ${error.message}`);
+  }
+}
+
+/* ============================ oy bakımı ================================= */
+
+/** Bir oyu tamamen kaldırır (sahibi iptal ederse ya da admin temizlerse). */
+export async function deleteVote(voteId: string): Promise<void> {
+  const { error } = await db().from(VOTES_TABLE).delete().eq("id", voteId);
+  if (error) throw new Error(error.message);
+}
+
+/** Tek bir oyu getirir (sahiplik kontrolü için). */
+export async function getVote(voteId: string): Promise<Vote | null> {
+  const { data } = await db()
+    .from(VOTES_TABLE)
+    .select("*")
+    .eq("id", voteId)
+    .maybeSingle();
+  return data ? rowToVote(data) : null;
+}
+
+/** TÜM oyları siler (admin: sıfırlama). */
+export async function purgeVotes(): Promise<number> {
+  const c = db();
+  const { count } = await c
+    .from(VOTES_TABLE)
+    .select("id", { count: "exact", head: true });
+  const { error } = await c
+    .from(VOTES_TABLE)
+    .delete()
+    .not("id", "is", null);
+  if (error) throw new Error(error.message);
+  return count ?? 0;
 }
 
 /* ========================= permission helpers =========================== */

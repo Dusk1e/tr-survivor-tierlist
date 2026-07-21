@@ -10,6 +10,7 @@ import MouseAvatar from "./MouseAvatar";
 import ScoreRing from "./ScoreRing";
 import ScoreBars from "./ScoreBars";
 import VoteSliders from "./VoteSliders";
+import { cancelVote } from "@/lib/api";
 import { useSession } from "./SessionProvider";
 
 /**
@@ -24,7 +25,7 @@ export default function MouseDetailModal({
   mouse: Mouse | null;
   onClose: () => void;
 }) {
-  const { session, isMe, aggFor, myVoteFor, openLoginFor, submitVote } =
+  const { session, isMe, aggFor, myVoteFor, openLoginFor, submitVote, refresh } =
     useSession();
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -60,7 +61,7 @@ export default function MouseDetailModal({
     <AnimatePresence>
       {mouse && (
         <motion.div
-          className="fixed inset-0 z-[65] flex items-center justify-center bg-abyss/85 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-[65] flex items-center justify-center bg-abyss/92 p-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -224,7 +225,21 @@ export default function MouseDetailModal({
             ) : myVote && !editing ? (
               <VoteStatusCard
                 status={myVote.status}
-                onEdit={() => setEditing(true)}
+                busy={busy}
+                onCancel={async () => {
+                  setBusy(true);
+                  setErr(null);
+                  try {
+                    await cancelVote(myVote.id);
+                    await refresh();
+                    setEditing(true); // puanlama ekranı geri gelsin
+                  } catch (e: any) {
+                    setErr(e?.message ?? "İptal edilemedi");
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+                onRetry={() => setEditing(true)}
               />
             ) : (
               <VoteSliders
@@ -234,8 +249,6 @@ export default function MouseDetailModal({
                 submitLabel={
                   myVote?.status === "rejected"
                     ? "Tekrar Puanla"
-                    : myVote?.status === "pending"
-                    ? "Puanı Güncelle"
                     : "Puanlamayı Gönder"
                 }
                 onSubmit={handleSubmit}
@@ -333,10 +346,14 @@ function BinaryStat({
 
 function VoteStatusCard({
   status,
-  onEdit,
+  busy,
+  onCancel,
+  onRetry,
 }: {
   status: "pending" | "approved" | "rejected";
-  onEdit: () => void;
+  busy: boolean;
+  onCancel: () => void;
+  onRetry: () => void;
 }) {
   if (status === "approved") {
     return (
@@ -359,10 +376,17 @@ function VoteStatusCard({
         </div>
         <p className="mt-1 text-xs font-semibold text-choco/55">
           Puanın gönderildi. Bir yetkili onayladığında genel ortalamaya
-          işlenecek. Onaylanana kadar güncelleyebilirsin.
+          işlenecek.
         </p>
-        <button onClick={onEdit} className="btn-ghost mt-3 text-sm">
-          Puanı Güncelle
+        <p className="mt-2 text-xs font-semibold text-choco/70">
+          İptal etmek ister misin?
+        </p>
+        <button
+          onClick={onCancel}
+          disabled={busy}
+          className="btn-ghost mt-2 text-sm disabled:opacity-50"
+        >
+          {busy ? "İptal ediliyor…" : "Puanı İptal Et"}
         </button>
       </div>
     );
@@ -376,7 +400,7 @@ function VoteStatusCard({
         Yetkililer bu puanı genel ortalamaya işlemedi. İstersen daha gerçekçi
         bir puanla tekrar gönderebilirsin.
       </p>
-      <button onClick={onEdit} className="btn-ghost mt-3 text-sm">
+      <button onClick={onRetry} className="btn-ghost mt-3 text-sm">
         Tekrar Puanla
       </button>
     </div>

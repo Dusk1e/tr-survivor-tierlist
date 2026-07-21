@@ -57,6 +57,7 @@ export interface Vote {
 }
 
 export interface MyVote {
+  id: string;
   status: VoteStatus;
   scores: Scores;
   hotkey: boolean;

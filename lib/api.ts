@@ -330,6 +330,7 @@ export async function getVoteState(
     for (const v of votes) {
       if (v.voter_id === session.mouseId) {
         mine[v.target_id] = {
+          id: v.id,
           status: v.status,
           scores: v.scores,
           hotkey: v.hotkey,
@@ -431,6 +432,35 @@ export async function decideVote(
   };
   lsSet(LS_VOTES, votes);
   pingDataChanged();
+}
+
+/** Bekleyen puanı iptal et (onaylanmışsa iptal edilemez). */
+export async function cancelVote(voteId: string): Promise<void> {
+  if (isCloud) {
+    const res = await fetch(`/api/votes/${voteId}`, { method: "DELETE" });
+    if (!res.ok) throw new Error((await safeMsg(res)) || "İptal edilemedi");
+    return;
+  }
+  const votes = lsLoadVotes();
+  const v = votes.find((x) => x.id === voteId);
+  if (v && v.status === "approved")
+    throw new Error("Onaylanmış puan iptal edilemez.");
+  lsSet(LS_VOTES, votes.filter((x) => x.id !== voteId));
+  pingDataChanged();
+}
+
+/** Admin: tüm oyları sil (sıfırlama). */
+export async function purgeAllVotes(): Promise<number> {
+  if (isCloud) {
+    const res = await fetch("/api/admin/votes", { method: "DELETE" });
+    if (!res.ok) throw new Error((await safeMsg(res)) || "Silinemedi");
+    const j = await res.json();
+    return Number(j?.silinen ?? 0);
+  }
+  const n = lsLoadVotes().length;
+  lsSet(LS_VOTES, []);
+  pingDataChanged();
+  return n;
 }
 
 /* ============================= authorities ============================= */

@@ -6,7 +6,13 @@ import {
   verifySessionToken,
 } from "@/lib/auth";
 import { cloudConfigured } from "@/lib/supabase";
-import { decideVote, mouseHasPerm } from "@/lib/store";
+import {
+  decideVote,
+  deleteVote,
+  getVote,
+  mouseHasPerm,
+  validMouse,
+} from "@/lib/store";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -47,6 +53,47 @@ export async function PATCH(
   } catch (e: any) {
     return NextResponse.json(
       { error: e?.message ?? "İşlem başarısız" },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * DELETE — oyu sahibi iptal eder. Sadece HENÜZ ONAYLANMAMIŞ oylar iptal
+ * edilebilir; onaylanan puan kilitlidir.
+ */
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  if (!cloudConfigured)
+    return NextResponse.json({ error: "Cloud yapılandırılmamış" }, { status: 501 });
+
+  const tok = verifyMouseToken(req.cookies.get(MOUSE_COOKIE)?.value);
+  if (!tok) return NextResponse.json({ error: "Giriş gerekli" }, { status: 401 });
+  const me = await validMouse(tok.mouseId, tok.epoch);
+  if (!me)
+    return NextResponse.json(
+      { error: "Oturumun geçersiz — tekrar giriş yap." },
+      { status: 401 }
+    );
+
+  const vote = await getVote(params.id);
+  if (!vote) return NextResponse.json({ error: "Kayıt yok" }, { status: 404 });
+  if (vote.voter_id !== me.id)
+    return NextResponse.json({ error: "Bu senin puanın değil" }, { status: 403 });
+  if (vote.status === "approved")
+    return NextResponse.json(
+      { error: "Onaylanmış puan iptal edilemez." },
+      { status: 400 }
+    );
+
+  try {
+    await deleteVote(params.id);
+    return NextResponse.json({ ok: true });
+  } catch (e: any) {
+    return NextResponse.json(
+      { error: e?.message ?? "İptal edilemedi" },
       { status: 500 }
     );
   }
