@@ -9,6 +9,10 @@ import MouseAvatar from "./MouseAvatar";
 
 const PEMBE = "#f472b6";
 
+/** Aşk Köşesi'nin ihtiyaç duyduğu tek seferlik veritabanı komutu. */
+const KURULUM_SQL =
+  "alter table public.mice\n  add column if not exists partner_id uuid references public.mice(id) on delete set null;";
+
 /**
  * Aşk Köşesi yönetimi. Asıl kullanım SÜRÜKLE-BIRAK: bir fareyi tutup
  * diğerinin üstüne bırakınca çift olurlar. Bağ karşılıklıdır — iki kayıt
@@ -27,9 +31,8 @@ export default function AdminCouples({
   const [err, setErr] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
 
-  /** Sürüklenen farenin id'si ve üstünde durulan hedef. */
-  const [suruklenen, setSuruklenen] = useState<string | null>(null);
-  const [hedef, setHedef] = useState<string | null>(null);
+  /** Tıklanarak seçilen fareler — en fazla iki tane. */
+  const [secilen, setSecilen] = useState<string[]>([]);
 
   const load = useCallback(async () => {
     try {
@@ -47,6 +50,9 @@ export default function AdminCouples({
   }, [load]);
 
   const byId = useMemo(() => new Map(mice.map((m) => [m.id, m])), [mice]);
+
+  /** Hata "sütun yok" hatasıysa kurulum kutusunu göster. */
+  const kurulumGerekli = Boolean(err && /partner_id|alter table/i.test(err));
 
   const listelenecek = useMemo(() => {
     const needle = q.trim().toLocaleLowerCase("tr");
@@ -86,13 +92,22 @@ export default function AdminCouples({
     }
   }
 
-  function birlestir(kaynakId: string, hedefId: string) {
-    if (!kaynakId || !hedefId || kaynakId === hedefId) return;
-    const an = byId.get(kaynakId)?.nickname ?? "";
-    const bn = byId.get(hedefId)?.nickname ?? "";
-    calistir(
-      () => pairMice(kaynakId, hedefId, tasi),
-      `${an} & ${bn} artık bir çift.`
+  /** Karta tıklayınca seç / seçimi kaldır. En fazla iki fare seçilebilir. */
+  function secToggle(id: string) {
+    if (busy) return;
+    setErr(null);
+    setSecilen((s) =>
+      s.includes(id) ? s.filter((x) => x !== id) : s.length >= 2 ? s : [...s, id]
+    );
+  }
+
+  function birlestir() {
+    const [x, y] = secilen;
+    if (!x || !y || x === y) return;
+    const an = byId.get(x)?.nickname ?? "";
+    const bn = byId.get(y)?.nickname ?? "";
+    calistir(() => pairMice(x, y, tasi), `${an} & ${bn} artık bir çift.`).then(
+      () => setSecilen([])
     );
   }
 
@@ -102,9 +117,9 @@ export default function AdminCouples({
         Aşk Köşesi
       </div>
       <p className="mb-4 text-xs font-medium text-choco/50">
-        Bir fareyi tutup <b className="text-pink-300">diğerinin üstüne bırak</b>
-        {" "}— ikisi çift olur ve tierlist&apos;te aralarında bir kalple yan yana
-        görünürler. Bağ karşılıklıdır; biri ayrılınca ikisi de serbest kalır.
+        Aşağıdan <b className="text-pink-300">iki fareye tıkla</b>, sonra çıkan
+        düğmeye bas. Tierlist&apos;te aralarında bir kalple yan yana görünürler.
+        Bağ karşılıklıdır; biri ayrılınca ikisi de serbest kalır.
       </p>
 
       <label className="mb-4 flex cursor-pointer items-center gap-2 text-xs font-semibold text-choco/60">
@@ -120,10 +135,54 @@ export default function AdminCouples({
         </span>
       </label>
 
-      {err && (
+      {err && (kurulumGerekli ? <KurulumUyarisi /> : (
         <p className="mb-3 rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm font-semibold text-red-300">
           {err}
         </p>
+      ))}
+
+      {/* Seçim çubuğu — iki fare seçilince beliren işlem düğmesi. */}
+      {secilen.length > 0 && (
+        <div
+          className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border px-4 py-3"
+          style={{
+            borderColor: `${PEMBE}66`,
+            background: `linear-gradient(135deg, ${PEMBE}20, transparent)`,
+          }}
+        >
+          <span className="flex items-center gap-2 font-system text-sm font-bold text-choco">
+            {formatName(byId.get(secilen[0])?.nickname ?? "")}
+            {secilen[1] ? (
+              <>
+                <Kalp size={15} />
+                {formatName(byId.get(secilen[1])?.nickname ?? "")}
+              </>
+            ) : (
+              <span className="font-medium text-choco/45">
+                — bir fare daha seç
+              </span>
+            )}
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={birlestir}
+              disabled={busy || secilen.length < 2}
+              className="btn-primary px-4 py-1.5 text-xs disabled:opacity-40"
+            >
+              {busy
+                ? "…"
+                : tasi
+                ? "Çift Yap ve Aşk Köşesi'ne Gönder"
+                : "Çift Yap"}
+            </button>
+            <button
+              onClick={() => setSecilen([])}
+              className="btn-ghost px-3 py-1.5 text-xs"
+            >
+              Seçimi Temizle
+            </button>
+          </div>
+        </div>
       )}
 
       {/* ---------------------------- çiftler ---------------------------- */}
@@ -137,7 +196,7 @@ export default function AdminCouples({
         </p>
       ) : ciftler.length === 0 ? (
         <p className="mb-5 text-sm font-medium italic text-choco/35">
-          Henüz çift yok — aşağıdan bir fareyi diğerinin üstüne sürükle.
+          Henüz çift yok — aşağıdan iki fare seç.
         </p>
       ) : (
         <div className="mb-5 space-y-2">
@@ -175,10 +234,10 @@ export default function AdminCouples({
         </div>
       )}
 
-      {/* ------------------------ sürüklenebilir kadro ------------------- */}
+      {/* --------------------------- kadro ------------------------------- */}
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
         <span className="font-display text-[11px] font-bold uppercase tracking-[0.18em] text-choco/40">
-          Fareler — sürükleyip birleştir
+          Fareler — tıklayarak iki tane seç
         </span>
         <input
           className="field !w-44 py-1.5 text-sm"
@@ -192,62 +251,45 @@ export default function AdminCouples({
         {listelenecek.map((m) => {
           const esli = Boolean(m.partner_id);
           const es = m.partner_id ? byId.get(m.partner_id) : undefined;
-          const suruklenenBu = suruklenen === m.id;
-          const hedefBu = hedef === m.id && suruklenen !== null && !suruklenenBu;
+          const sira = secilen.indexOf(m.id); // -1 = seçili değil
+          const secili = sira >= 0;
 
           return (
-            <div
+            <button
               key={m.id}
-              draggable={!busy}
-              onDragStart={(e) => {
-                e.dataTransfer.setData("text/plain", m.id);
-                e.dataTransfer.effectAllowed = "link";
-                setSuruklenen(m.id);
-              }}
-              onDragEnd={() => {
-                setSuruklenen(null);
-                setHedef(null);
-              }}
-              onDragOver={(e) => {
-                if (suruklenen && suruklenen !== m.id) {
-                  e.preventDefault();
-                  e.dataTransfer.dropEffect = "link";
-                }
-              }}
-              onDragEnter={() => {
-                if (suruklenen && suruklenen !== m.id) setHedef(m.id);
-              }}
-              onDragLeave={() =>
-                setHedef((h) => (h === m.id ? null : h))
-              }
-              onDrop={(e) => {
-                e.preventDefault();
-                const kaynak = e.dataTransfer.getData("text/plain") || suruklenen;
-                setHedef(null);
-                setSuruklenen(null);
-                if (kaynak) birlestir(kaynak, m.id);
-              }}
+              type="button"
+              onClick={() => secToggle(m.id)}
+              disabled={busy}
               title={
                 esli && es
                   ? `${formatName(m.nickname)} — eşi: ${formatName(es.nickname)}`
-                  : `${formatName(m.nickname)} — birleştirmek için başka bir farenin üstüne sürükle`
+                  : `${formatName(m.nickname)} — seçmek için tıkla`
               }
-              className="relative flex w-[96px] cursor-grab flex-col items-center gap-1 rounded-xl border p-2 transition-all active:cursor-grabbing"
+              className="relative flex w-[96px] flex-col items-center gap-1 rounded-xl border p-2 text-center transition-all disabled:opacity-50"
               style={{
-                borderColor: hedefBu
+                borderColor: secili
                   ? PEMBE
                   : esli
                   ? `${PEMBE}66`
                   : "rgba(255,255,255,0.1)",
-                background: hedefBu
+                background: secili
                   ? `${PEMBE}2e`
                   : esli
                   ? `${PEMBE}14`
                   : "rgba(255,255,255,0.04)",
-                boxShadow: hedefBu ? `0 0 0 2px ${PEMBE}, 0 0 18px ${PEMBE}66` : "none",
-                opacity: suruklenenBu ? 0.4 : 1,
+                boxShadow: secili
+                  ? `0 0 0 2px ${PEMBE}, 0 0 18px ${PEMBE}66`
+                  : "none",
               }}
             >
+              {secili && (
+                <span
+                  className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full font-display text-[11px] font-bold text-white"
+                  style={{ background: PEMBE }}
+                >
+                  {sira + 1}
+                </span>
+              )}
               <div
                 className="h-[52px] w-[52px] overflow-hidden rounded-lg border"
                 style={{ borderColor: esli ? `${PEMBE}88` : "rgba(255,255,255,0.12)" }}
@@ -275,12 +317,7 @@ export default function AdminCouples({
                 </span>
               )}
 
-              {hedefBu && (
-                <span className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-xl">
-                  <Kalp size={30} />
-                </span>
-              )}
-            </div>
+            </button>
           );
         })}
       </div>
@@ -290,6 +327,50 @@ export default function AdminCouples({
           Aramaya uyan fare yok.
         </p>
       )}
+    </div>
+  );
+}
+
+/**
+ * Aşk Köşesi için gereken tek seferlik veritabanı adımı. Hata metnini
+ * olduğu gibi basmak yerine ne yapılacağını adım adım ve kopyalanabilir
+ * şekilde gösterir.
+ */
+function KurulumUyarisi() {
+  const [kopyalandi, setKopyalandi] = useState(false);
+
+  async function kopyala() {
+    try {
+      await navigator.clipboard.writeText(KURULUM_SQL);
+      setKopyalandi(true);
+      setTimeout(() => setKopyalandi(false), 2000);
+    } catch {
+      setKopyalandi(false);
+    }
+  }
+
+  return (
+    <div className="mb-4 rounded-xl border border-amber-500/40 bg-amber-500/10 p-4">
+      <div className="mb-1 font-display text-sm font-bold uppercase tracking-wider text-amber-300">
+        Tek seferlik kurulum gerekiyor
+      </div>
+      <p className="mb-3 text-xs font-semibold text-choco/70">
+        Çift özelliği için veritabanına bir sütun eklenmeli. Supabase panelini
+        aç → sol menüden <b>SQL Editor</b> → aşağıdaki komutu yapıştır →{" "}
+        <b>Run</b>. Bir kez yapman yeterli.
+      </p>
+
+      <pre className="mb-2 overflow-x-auto rounded-lg border border-white/10 bg-black/40 p-3 font-mono text-[11px] leading-relaxed text-teal-deep">
+        {KURULUM_SQL}
+      </pre>
+
+      <button
+        type="button"
+        onClick={kopyala}
+        className="btn-primary px-3 py-1.5 text-xs"
+      >
+        {kopyalandi ? "Kopyalandı" : "Komutu Kopyala"}
+      </button>
     </div>
   );
 }
