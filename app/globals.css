@@ -1,0 +1,365 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-display: "Space Grotesk", system-ui, sans-serif;
+  --font-system: "Inter", system-ui, sans-serif;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+::selection {
+  background: rgba(73, 192, 194, 0.35);
+  color: #ffffff;
+}
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+  color: #e8edf4;
+  background: #0b0f15;
+  font-family: var(--font-system), system-ui, sans-serif;
+  overflow-x: hidden;
+}
+
+/* ---------------------------------------------------------------------- */
+/*  Modern matte scene                                                     */
+/* ---------------------------------------------------------------------- */
+.scene-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -3;
+  background: radial-gradient(
+    1200px 720px at 50% -18%,
+    #18202b 0%,
+    #0e131a 55%,
+    #0a0e14 100%
+  );
+}
+
+.scene-grid {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.028) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.028) 1px, transparent 1px);
+  background-size: 62px 62px;
+  mask-image: radial-gradient(ellipse 85% 62% at 50% 0%, #000 38%, transparent 82%);
+  -webkit-mask-image: radial-gradient(ellipse 85% 62% at 50% 0%, #000 38%, transparent 82%);
+}
+
+.scene-glow {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    radial-gradient(640px 340px at 8% 4%, rgba(224, 27, 44, 0.14), transparent 64%),
+    radial-gradient(680px 360px at 92% 10%, rgba(31, 111, 208, 0.16), transparent 64%),
+    radial-gradient(720px 380px at 50% 100%, rgba(73, 192, 194, 0.08), transparent 66%);
+}
+
+/* ---------------------------------------------------------------------- */
+/*  Türk bayrağı banner'ı — üst alanı tamamen kaplar, aşağı doğru solar,   */
+/*  hilal + yıldız TAM ORTADA ve simetrik                                  */
+/* ---------------------------------------------------------------------- */
+.flag-banner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 380px;
+  z-index: 0; /* fixed arka plan katmanlarının önünde, motion içerik katmanlarının arkasında */
+  overflow: hidden;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    rgba(201, 18, 34, 0.5) 0%,
+    rgba(201, 18, 34, 0.38) 30%,
+    rgba(201, 18, 34, 0.2) 58%,
+    rgba(201, 18, 34, 0.07) 80%,
+    transparent 100%
+  );
+}
+.flag-banner__sheen {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    transparent 20%,
+    rgba(255, 255, 255, 0.05) 46%,
+    rgba(255, 255, 255, 0.09) 50%,
+    rgba(255, 255, 255, 0.05) 54%,
+    transparent 80%
+  );
+  background-size: 260% 100%;
+  animation: flag-sheen 16s linear infinite;
+  mix-blend-mode: screen;
+}
+.flag-banner__emblem {
+  position: absolute;
+  left: 50%;
+  top: 44px;
+  transform: translateX(-50%);
+  width: 230px;
+  opacity: 0.5;
+  filter: drop-shadow(0 4px 26px rgba(120, 8, 18, 0.6));
+  animation: flag-breathe 9s ease-in-out infinite;
+}
+@keyframes flag-breathe {
+  0%, 100% { opacity: 0.44; }
+  50% { opacity: 0.56; }
+}
+@keyframes flag-sheen {
+  from { background-position: 130% 0; }
+  to { background-position: -130% 0; }
+}
+
+/* small pole flag (admin login) */
+@keyframes flag-wave {
+  0%, 100% { transform: skewY(1.1deg) rotate(-0.6deg); }
+  50% { transform: skewY(-0.9deg) rotate(0.5deg); }
+}
+.flag-wave {
+  animation: flag-wave 3.4s ease-in-out infinite;
+  transform-origin: left center;
+}
+
+/* ---------------------------------------------------------------------- */
+/*  Cards — matte glass                                                    */
+/* ---------------------------------------------------------------------- */
+.glass {
+  background: rgba(255, 255, 255, 0.035);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.4);
+}
+
+.glass-strong {
+  background: rgba(23, 28, 36, 0.94);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 18px;
+  box-shadow: 0 22px 54px rgba(0, 0, 0, 0.55);
+}
+
+.sys-window {
+  position: relative;
+  border-radius: 18px;
+}
+.sys-bracket::before,
+.sys-bracket::after {
+  content: none;
+}
+.scanlines::after {
+  content: none;
+}
+
+/* Modern gradient wordmark */
+.logo-text {
+  background: linear-gradient(100deg, #ffffff 0%, #74d3d5 46%, #ecc673 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  letter-spacing: -0.02em;
+}
+
+/* Legendary (top tier) shimmering label */
+.tier-label-legend {
+  background: linear-gradient(100deg, #f6d992 0%, #fff5d6 30%, #e8b64c 55%, #fff5d6 80%, #f6d992 100%);
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: legend-shimmer 5s linear infinite;
+}
+@keyframes legend-shimmer {
+  from { background-position: 0% 50%; }
+  to { background-position: 220% 50%; }
+}
+
+.neon,
+.neon-violet {
+  text-shadow: none;
+}
+
+.hairline {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), transparent);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+::-webkit-scrollbar-track {
+  background: #0d1117;
+}
+::-webkit-scrollbar-thumb {
+  background: #2a333f;
+  border-radius: 8px;
+  border: 3px solid #0d1117;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3a4553;
+}
+
+/* ---------------------------------------------------------------------- */
+/*  Buttons                                                                */
+/* ---------------------------------------------------------------------- */
+.btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 font-system font-semibold tracking-tight transition-all duration-150;
+}
+.btn-primary {
+  @apply btn;
+  color: #052b2c;
+  background: linear-gradient(180deg, #56cfd1, #3fb2b4);
+  box-shadow: 0 6px 20px rgba(73, 192, 194, 0.28);
+}
+.btn-primary:hover {
+  filter: brightness(1.07);
+  transform: translateY(-1px);
+}
+.btn-primary:active {
+  transform: translateY(0);
+}
+.btn-ghost {
+  @apply btn;
+  color: #cdd6e0;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+.btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(116, 211, 213, 0.5);
+  color: #ffffff;
+}
+.btn-danger {
+  @apply btn;
+  color: #ffffff;
+  background: linear-gradient(180deg, #e5646b, #d24a52);
+  box-shadow: 0 6px 18px rgba(210, 74, 82, 0.3);
+}
+.btn-danger:hover {
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+}
+.btn-success {
+  @apply btn;
+  color: #06230f;
+  background: linear-gradient(180deg, #6cd97b, #4cba5c);
+  box-shadow: 0 6px 18px rgba(90, 208, 106, 0.28);
+}
+.btn-success:hover {
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+}
+
+/* Admin girişi — kırmızı/mavi vurgulu, dikkat çeken buton */
+.btn-admin {
+  @apply btn relative overflow-hidden font-bold uppercase tracking-wide;
+  color: #ffffff;
+  background: linear-gradient(120deg, #e01b2c 0%, #c2172a 45%, #1f6fd0 100%);
+  box-shadow: 0 6px 20px rgba(224, 27, 44, 0.35),
+    0 0 0 1px rgba(255, 255, 255, 0.14) inset;
+}
+.btn-admin::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.32) 50%,
+    transparent 70%
+  );
+  background-size: 220% 100%;
+  animation: admin-sheen 4.5s linear infinite;
+}
+.btn-admin:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 26px rgba(224, 27, 44, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.22) inset;
+}
+@keyframes admin-sheen {
+  from { background-position: 140% 0; }
+  to { background-position: -140% 0; }
+}
+
+/* Form fields */
+.field {
+  @apply w-full rounded-xl px-3 py-2 outline-none transition;
+  background: rgba(255, 255, 255, 0.04);
+  color: #e8edf4;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+.field::placeholder {
+  color: rgba(232, 237, 244, 0.35);
+}
+.field:focus {
+  border-color: #49c0c2;
+  box-shadow: 0 0 0 3px rgba(73, 192, 194, 0.18);
+}
+.label {
+  @apply mb-1 block font-system text-xs font-bold uppercase tracking-[0.12em];
+  color: #74d3d5;
+}
+
+/* ---------------------------------------------------------------------- */
+/*  Score sliders (0-100)                                                  */
+/* ---------------------------------------------------------------------- */
+input[type="range"].score-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  outline: none;
+  cursor: pointer;
+}
+input[type="range"].score-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 4px solid var(--thumb, #49c0c2);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.55);
+  transition: transform 0.12s ease;
+}
+input[type="range"].score-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.12);
+}
+input[type="range"].score-slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 4px solid var(--thumb, #49c0c2);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.55);
+  cursor: pointer;
+}
+input[type="range"].score-slider:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
