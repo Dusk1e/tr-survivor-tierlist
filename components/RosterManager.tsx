@@ -78,11 +78,40 @@ export default function RosterManager({
     await refresh();
   }
 
+  /**
+   * SADECE gerçekten değişen alanları gönderir.
+   *
+   * Eskiden formdaki bütün alanlar geri yazılıyordu. Form bir alanı
+   * yükleyememişse (şifre, yetkiler) o alan boş değeriyle üzerine
+   * yazılıyor ve hesap bozuluyordu. Yetkiler ve epoch buradan ASLA
+   * gönderilmez — yetkiler kendi panelinden yönetilir.
+   */
   async function handleUpdate(input: MouseInput) {
     if (!editing) return;
-    const patch: Partial<MouseInput> = { ...input };
-    if (!caps.canPwEdit) delete patch.password;
-    if (input.tier !== editing.tier) patch.sort = nextSortIn(input.tier);
+    const patch: Partial<MouseInput> = {};
+
+    if (input.nickname !== editing.nickname) patch.nickname = input.nickname;
+    if (input.title !== editing.title) patch.title = input.title;
+    if (input.image_url !== editing.image_url) patch.image_url = input.image_url;
+    if (input.username !== editing.username) patch.username = input.username;
+    if (input.tier !== editing.tier) {
+      patch.tier = input.tier;
+      patch.sort = nextSortIn(input.tier);
+    }
+    // Şifre yalnızca yetkin varsa VE gerçekten yeni bir değer girildiyse.
+    if (
+      caps.canPwEdit &&
+      input.password &&
+      input.password !== editing.password
+    )
+      patch.password = input.password;
+
+    if (Object.keys(patch).length === 0) {
+      onToast("Değişiklik yok.");
+      setEditing(null);
+      return;
+    }
+
     await editMouse(editing.id, patch);
     onToast(`"${formatName(input.nickname)}" güncellendi.`);
     setEditing(null);

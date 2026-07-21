@@ -151,11 +151,18 @@ export async function findMouseByCredentials(
   const { data, error } = await db().from(MICE_TABLE).select("*");
   if (error) throw new Error(`Fareler okunamadı: ${error.message}`);
   const rows = (data ?? []).map(rowToMouse);
+
+  // Giriş HEM kullanıcı adı HEM nick ile kabul edilir. Eskiden sadece
+  // "username || nickname" karşılaştırılıyordu; panelden nick değiştirilip
+  // (Alwesh -> Alwesh#0000) kullanıcı adı eski kalınca hesap kilitleniyordu.
+  const adlari = (m: Mouse) =>
+    [m.username, m.nickname]
+      .map((s) => (s ?? "").trim().toLowerCase())
+      .filter(Boolean);
+
   return (
     rows.find(
-      (m) =>
-        (m.username || m.nickname || "").trim().toLowerCase() === uname &&
-        (m.password ?? "") === password
+      (m) => adlari(m).includes(uname) && (m.password ?? "") === password
     ) ?? null
   );
 }

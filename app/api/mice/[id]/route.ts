@@ -31,7 +31,10 @@ function sanitizePatch(body: any): Partial<MouseInput> {
   if (Number.isFinite(Number(body?.sort))) patch.sort = Number(body.sort);
   if (typeof body?.username === "string")
     patch.username = body.username.trim().slice(0, 40);
-  if (typeof body?.password === "string")
+  // BOŞ şifre "değiştirme" sayılmaz, "sil" hiç sayılmaz. Form şifreyi
+  // yükleyememişse boş gönderiyordu ve gerçek şifreyi eziyordu — hesap
+  // giriş yapılamaz hâle geliyordu. Boş gelen şifre artık yok sayılır.
+  if (typeof body?.password === "string" && body.password.trim().length > 0)
     patch.password = body.password.slice(0, 60);
   if (body?.permissions !== undefined)
     patch.permissions = sanitizePerms(body.permissions);

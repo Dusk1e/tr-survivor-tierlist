@@ -116,6 +116,17 @@ function loginName(m: Mouse): string {
   return (m.username || m.nickname || "").trim().toLowerCase();
 }
 
+/**
+ * Giriş için kabul edilen adlar — hem kullanıcı adı hem nick.
+ * Panelden nick değiştirilip kullanıcı adı eski kalınca hesabın
+ * kilitlenmemesi için ikisi de geçerli sayılır.
+ */
+function loginNames(m: Mouse): string[] {
+  return [m.username, m.nickname]
+    .map((s) => (s ?? "").trim().toLowerCase())
+    .filter(Boolean);
+}
+
 /* ================================ mice ================================== */
 
 /** Public roster (passwords stripped in cloud mode unless authorized). */
@@ -278,7 +289,7 @@ export async function mouseLogin(
   const uname = username.trim().toLowerCase();
   const mice = lsLoadMice();
   const found = mice.find(
-    (m) => loginName(m) === uname && (m.password ?? "") === password
+    (m) => loginNames(m).includes(uname) && (m.password ?? "") === password
   );
   if (!found) throw new Error("Şifre hatalı.");
   const session: Session = {
