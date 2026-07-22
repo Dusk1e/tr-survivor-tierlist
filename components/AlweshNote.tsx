@@ -67,21 +67,9 @@ export default function AlweshNote() {
               aria-modal="true"
               aria-label="Alwesh'ten not"
             >
-              <div className="mb-5 flex items-start justify-between gap-4">
-                <div>
-                  <div className="font-display text-[11px] font-bold uppercase tracking-[0.24em] text-choco/40">
-                    Topluluğa Not
-                  </div>
-                  <h2
-                    className="mt-1 font-display text-2xl font-bold tracking-tight sm:text-3xl"
-                    style={{
-                      color: "#f3cf7e",
-                      textShadow: "0 0 18px rgba(232,182,76,0.45)",
-                    }}
-                  >
-                    Alwesh&apos;ten
-                  </h2>
-                </div>
+              {/* Başlık yok — metin doğrudan "Arkadaşlar," ile başlıyor.
+                  Kapatma düğmesi sağda tek başına duruyor. */}
+              <div className="mb-2 flex justify-end">
                 <button
                   onClick={() => setAcik(false)}
                   className="shrink-0 rounded-lg border border-white/10 bg-white/[0.05] px-2.5 py-1 text-lg leading-none text-choco/60 transition hover:bg-white/10 hover:text-choco"
@@ -106,6 +94,14 @@ export default function AlweshNote() {
                   <b className="text-choco">sizsiniz</b>. Puanları veren de
                   sizsiniz. Bu yüzden bana kırgın ya da sitemli gelmenize gerek
                   yok.
+                </p>
+
+                <p>
+                  Kimin yükseleceğine ben ya da yetkililer karar vermiyoruz;
+                  karar <b className="text-choco">herkesin</b>. Birkaç kişi
+                  &ldquo;bence bu isim burada değil, daha yukarıda olmalı&rdquo;
+                  der ve bu görüşte birleşilirse o isim yükselir; tersi olursa
+                  düşer. Sistem bu kadar basit.
                 </p>
 
                 <p>
