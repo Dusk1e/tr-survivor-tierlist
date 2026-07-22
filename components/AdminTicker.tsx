@@ -5,7 +5,7 @@ import { getTicker, saveTicker } from "@/lib/api";
 import { TickerConfig, TICKER_VARSAYILAN } from "@/lib/types";
 
 /**
- * Son Dakika bandı yönetimi. Notlar tek tek eklenir, bantta sırayla geçer
+ * TFM Bülteni bandı yönetimi. Notlar tek tek eklenir, bantta sırayla geçer
  * ve sonuncudan sonra başa döner. Silinen not döngüden çıkar.
  */
 export default function AdminTicker({
@@ -93,8 +93,8 @@ export default function AdminTicker({
 
   return (
     <div className="glass-strong sys-window p-5 sm:p-6">
-      <div className="mb-1 font-display text-base font-bold uppercase tracking-[0.12em] text-red-300">
-        Son Dakika Bandı
+      <div className="mb-1 font-display text-base font-bold uppercase tracking-[0.12em] text-teal-deep">
+        TFM Bülteni
       </div>
       <p className="mb-4 text-xs font-medium text-choco/50">
         Eklediğin notlar bantta <b>sırayla</b> geçer, sonuncudan sonra başa
@@ -118,7 +118,7 @@ export default function AdminTicker({
               e.target.checked ? "Bant yayında." : "Bant kapatıldı."
             )
           }
-          className="h-4 w-4 accent-red-500"
+          className="h-4 w-4 accent-cyan-400"
         />
         Bandı yayına al
       </label>
@@ -170,7 +170,7 @@ export default function AdminTicker({
               key={`${i}-${not}`}
               className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2"
             >
-              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-red-500/20 font-display text-[11px] font-bold text-red-300 tabular-nums">
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-teal/20 font-display text-[11px] font-bold text-teal-deep tabular-nums">
                 {i + 1}
               </span>
               <span className="min-w-0 flex-1 truncate font-system text-sm font-semibold text-choco/85">
@@ -222,7 +222,7 @@ export default function AdminTicker({
         onChange={(e) => setCfg({ ...cfg, hiz: Number(e.target.value) })}
         onMouseUp={() => yaz(cfg, "Hız güncellendi.")}
         onTouchEnd={() => yaz(cfg, "Hız güncellendi.")}
-        className="w-full accent-red-500"
+        className="w-full accent-cyan-400"
       />
       <div className="mb-4 flex justify-between font-system text-[11px] font-medium text-choco/35">
         <span>Hızlı</span>
@@ -233,11 +233,11 @@ export default function AdminTicker({
       <div className="label">Önizleme</div>
       {notlar.length > 0 ? (
         <div className="sd-sahne mt-1">
-          <div className="sd-yuzey flex items-stretch overflow-hidden rounded-xl border border-red-300/25">
+          <div className="sd-yuzey flex items-stretch overflow-hidden rounded-xl border border-teal/25">
             <div className="flex shrink-0 items-center py-2 pl-2.5 pr-3">
               <span className="sd-etiket flex items-center gap-1.5 rounded-lg px-2.5 py-1 font-display text-[11px] font-bold uppercase tracking-[0.14em]">
-                <span className="sd-nokta h-2 w-2 rounded-full bg-red-700" />
-                Son Dakika
+                <span className="sd-nokta h-2 w-2 rounded-full bg-teal-950" />
+                TFM Bülteni
               </span>
             </div>
             <div className="sd-maske relative flex-1 overflow-hidden">

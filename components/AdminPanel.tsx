@@ -112,7 +112,7 @@ export default function AdminPanel({ onLogout }: { onLogout: () => void }) {
           Aşk Köşesi
         </TabButton>
         <TabButton active={tab === "ticker"} onClick={() => setTab("ticker")}>
-          Son Dakika
+          TFM Bülteni
         </TabButton>
       </div>
 

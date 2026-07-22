@@ -5,7 +5,7 @@ import { DATA_EVENT, getTicker } from "@/lib/api";
 import { TickerConfig } from "@/lib/types";
 
 /**
- * "Son Dakika" haber bandı — 3B yatık kırmızı yüzey üzerinde yavaşça kayan
+ * "TFM Bülteni" haber bandı — 3B yatık koyu yüzey üzerinde yavaşça kayan
  * yazı. İçerik panelden yönetilir; kapalıysa ya da yazı boşsa hiç çizilmez.
  * Üzerine gelince kayma durur (okumak isteyen durdurabilsin).
  */
@@ -38,12 +38,12 @@ export default function BreakingNews() {
 
   return (
     <div className="sd-sahne mb-6" role="status" aria-live="polite">
-      <div className="sd-yuzey flex items-stretch overflow-hidden rounded-xl border border-red-300/25">
+      <div className="sd-yuzey flex items-stretch overflow-hidden rounded-xl border border-teal/25">
         {/* Sol plaka */}
         <div className="flex shrink-0 items-center py-2 pl-2.5 pr-3 sm:pl-3">
           <span className="sd-etiket flex items-center gap-1.5 rounded-lg px-2.5 py-1 font-display text-[11px] font-bold uppercase tracking-[0.14em] sm:text-xs">
-            <span className="sd-nokta h-2 w-2 rounded-full bg-red-700" />
-            Son Dakika
+            <span className="sd-nokta h-2 w-2 rounded-full bg-teal-950" />
+            TFM Bülteni
           </span>
         </div>
 

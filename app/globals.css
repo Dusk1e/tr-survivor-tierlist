@@ -366,14 +366,38 @@ input[type="range"].score-slider:disabled {
 .sd-sahne { perspective: 900px; }
 
 .sd-yuzey {
+  position: relative;
   transform: rotateX(7deg);
   transform-origin: center bottom;
-  background: linear-gradient(180deg, #b3222c 0%, #8c1620 55%, #5f0d15 100%);
+  background:
+    linear-gradient(180deg, #16323b 0%, #0f2029 55%, #0a161d 100%);
   box-shadow:
-    0 14px 28px rgba(0, 0, 0, 0.55),
-    0 2px 0 rgba(255, 255, 255, 0.18) inset,
-    0 -4px 0 rgba(0, 0, 0, 0.45) inset,
-    0 0 26px rgba(179, 34, 44, 0.35);
+    0 16px 34px rgba(0, 0, 0, 0.6),
+    0 1px 0 rgba(120, 230, 235, 0.30) inset,
+    0 -4px 0 rgba(0, 0, 0, 0.5) inset,
+    0 0 30px rgba(73, 192, 194, 0.22);
+}
+
+/* Yuzeyin uzerinden gecen ince isik huzmesi — yayin bandi hissi. */
+.sd-yuzey::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    100deg,
+    transparent 0%,
+    rgba(120, 230, 235, 0.10) 45%,
+    rgba(255, 255, 255, 0.16) 50%,
+    rgba(120, 230, 235, 0.10) 55%,
+    transparent 100%
+  );
+  background-size: 260% 100%;
+  animation: sd-huzme 7s linear infinite;
+}
+@keyframes sd-huzme {
+  from { background-position: 160% 0; }
+  to   { background-position: -60% 0; }
 }
 
 /* Kayan şerit — içerik iki kez basılır, -%50 kayınca dikişsiz döner. */
@@ -395,12 +419,13 @@ input[type="range"].score-slider:disabled {
 
 /* Sol etiket — bandın üstünde duran kabartma plaka. */
 .sd-etiket {
-  background: linear-gradient(180deg, #fff2f2 0%, #ffd7d7 45%, #f0abab 100%);
-  color: #6d0d15;
+  background: linear-gradient(180deg, #7ff0f2 0%, #49c0c2 50%, #2b8e90 100%);
+  color: #04262a;
   box-shadow:
-    0 3px 8px rgba(0, 0, 0, 0.45),
-    0 1px 0 rgba(255, 255, 255, 0.9) inset,
-    0 -2px 0 rgba(0, 0, 0, 0.18) inset;
+    0 3px 10px rgba(0, 0, 0, 0.5),
+    0 1px 0 rgba(255, 255, 255, 0.75) inset,
+    0 -2px 0 rgba(0, 0, 0, 0.22) inset,
+    0 0 16px rgba(73, 192, 194, 0.45);
 }
 @keyframes sd-yanip-son {
   0%, 100% { opacity: 1; }
@@ -417,6 +442,7 @@ input[type="range"].score-slider:disabled {
 @media (prefers-reduced-motion: reduce) {
   .sd-kay { animation: none; }
   .sd-nokta { animation: none; }
+  .sd-yuzey::after { animation: none; }
   .sd-yuzey { transform: none; }
 }
 

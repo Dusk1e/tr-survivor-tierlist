@@ -3,6 +3,16 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 
+/** Tierlerin başlangıç puanları — lib/tiers.ts içindeki baseline değerleri. */
+const BASLANGIC = [
+  { ad: "Monarch", puan: 89, renk: "#f3cf7e" },
+  { ad: "M – S Arası", puan: 84, renk: "#d9c4fb" },
+  { ad: "S-Rank", puan: 79, renk: "#c4b0fc" },
+  { ad: "A-Rank", puan: 73, renk: "#8ad2f2" },
+  { ad: "B-Rank", puan: 63, renk: "#7fd6c6" },
+  { ad: "C-Rank", puan: 55, renk: "#a3d193" },
+];
+
 /**
  * Başlıktaki "Alwesh'ten Not" düğmesi ve açtığı pencere. Sıralamanın nasıl
  * oluştuğu konusunda topluluğa tek seferlik bir açıklama sunar.
@@ -30,11 +40,16 @@ export default function AlweshNote() {
     <>
       <button
         onClick={() => setAcik(true)}
-        className="not-dugme inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-display text-sm font-bold"
-        title="Alwesh'ten topluluğa not"
+        className="not-dugme inline-flex items-center gap-2 rounded-lg px-3 py-1.5 font-display text-sm font-bold"
+        title="Topluluğa not — okumanız rica olunur"
       >
         <span className="not-nokta h-2 w-2 rounded-full bg-amber-900/70" />
-        Alwesh&apos;ten Not
+        <span className="text-[11px] font-bold uppercase tracking-[0.18em] opacity-70">
+          Okuyun
+        </span>
+        <span className="text-base font-bold uppercase tracking-[0.06em]">
+          Not
+        </span>
       </button>
 
       {mounted &&
@@ -95,9 +110,15 @@ export default function AlweshNote() {
 
                 <p>
                   Bir oyun ve bir liste yüzünden kimsenin kalbini kırmayalım.
-                  Kendini hak ettiğinden daha aşağıda görüyorsan bunu bize
-                  iletebilirsin. Ya da hiç takılmayıp Aşk Köşesi&apos;ne
-                  geçebilirsin.
+                  Kendini hak ettiğinden daha aşağıda görüyorsan ve diğer
+                  oyuncular da böyle düşünüyorsa zaten yükseleceksin. Yine de
+                  memnun değilsen, yetkililere bildirerek Aşk Köşesi&apos;ne
+                  geçebilirsin — orada puanlama yoktur.
+                </p>
+
+                <p className="rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm">
+                  <b className="text-choco">Yetkililer:</b> Blacklean, Gracc,
+                  Kaanexe, Alp ve bunların ileride yetkilendireceği isimler.
                 </p>
 
                 <p>
@@ -116,6 +137,80 @@ export default function AlweshNote() {
                 >
                   Bu site, geriye güzel bir anı kalsın diye yapıldı. Amacı da
                   bundan ibaret.
+                </p>
+              </div>
+
+              {/* Puanlama nasıl işliyor */}
+              <div className="mt-6 border-t border-white/8 pt-5">
+                <div className="mb-3 font-display text-sm font-bold uppercase tracking-[0.14em] text-teal-deep">
+                  Puanlama Nasıl İşliyor?
+                </div>
+
+                <ul className="space-y-2 font-system text-sm leading-relaxed text-choco/75">
+                  <li className="flex gap-2">
+                    <span className="text-teal-deep">•</span>
+                    <span>
+                      Oy verirken üç başlık puanlanır:{" "}
+                      <b className="text-choco">Fare Oynayışı</b>,{" "}
+                      <b className="text-choco">Şaman Oynayışı</b> ve{" "}
+                      <b className="text-choco">WS &amp; Güven</b>. Ayrıca
+                      hotkey kullanıp kullanmadığı sorulur.
+                    </span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="text-teal-deep">•</span>
+                    <span>
+                      Her fare, bulunduğu tier&apos;ın{" "}
+                      <b className="text-choco">başlangıç puanıyla</b> listeye
+                      girer. Gerçek oylar geldikçe bu puanın etkisi azalır ve
+                      yerini topluluk ortalamasına bırakır.
+                    </span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="text-teal-deep">•</span>
+                    <span>
+                      Üst tier&apos;daki oyuncuların oyu biraz daha ağır basar
+                      (Monarch 1.8 kat, C 1.0 kat).
+                    </span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="text-teal-deep">•</span>
+                    <span>
+                      Oylar <b className="text-choco">yetkili onayından sonra</b>{" "}
+                      ortalamaya işlenir. Onaylanan puan bir daha
+                      değiştirilemez.
+                    </span>
+                  </li>
+                </ul>
+
+                <div className="mb-2 mt-5 font-display text-[11px] font-bold uppercase tracking-[0.18em] text-choco/40">
+                  Tierlerin Başlangıç Puanları
+                </div>
+                <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">
+                  {BASLANGIC.map((t) => (
+                    <div
+                      key={t.ad}
+                      className="flex items-center justify-between rounded-lg border px-2.5 py-1.5"
+                      style={{
+                        borderColor: `${t.renk}44`,
+                        background: `${t.renk}12`,
+                      }}
+                    >
+                      <span
+                        className="truncate font-display text-[10px] font-bold uppercase tracking-wider"
+                        style={{ color: t.renk }}
+                      >
+                        {t.ad}
+                      </span>
+                      <span className="ml-2 font-display text-sm font-bold text-choco tabular-nums">
+                        {t.puan}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <p className="mt-2 font-system text-xs font-medium text-choco/45">
+                  Aşk Köşesi&apos;nde puanlama yoktur; orada puan yerine kalp
+                  gösterilir.
                 </p>
               </div>
 
