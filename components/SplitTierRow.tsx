@@ -65,15 +65,15 @@ function Yarim({ tier, mice }: { tier: TierConfig; mice: Mouse[] }) {
       {/* Başlık şeridi — içerik ORTALANIR; sayaç sağ uçta mutlak konumda
           durur ki ortalamayı kaydırmasın. */}
       <div
-        className="relative flex items-center justify-center gap-2.5 px-3 py-2"
+        className="relative flex items-center justify-center gap-2.5 px-3 py-1.5"
         style={{
-          background: `linear-gradient(180deg, ${tier.accent}${
-            glow >= 2.4 ? "22" : "14"
-          }, transparent)`,
-          borderBottom: "1px solid rgba(255,255,255,0.07)",
+          background: `linear-gradient(90deg, ${tier.accent}${
+            glow >= 2.4 ? "2e" : "1f"
+          }, ${tier.accent}0a 55%, transparent)`,
+          borderBottom: `1px solid ${tier.accent}22`,
         }}
       >
-        <TierSigil tier={tier} size={32} />
+        <TierSigil tier={tier} size={30} />
 
         <h2
           className={`shrink-0 font-display text-base font-bold uppercase leading-none tracking-tight ${
@@ -95,7 +95,7 @@ function Yarim({ tier, mice }: { tier: TierConfig; mice: Mouse[] }) {
         {/* Alt yazı — tier renginde, belirgin */}
         <p
           className="min-w-0 truncate font-system text-[13px] font-bold"
-          style={{ color: tier.deep, opacity: 0.85 }}
+          style={{ color: tier.deep, opacity: 0.8 }}
         >
           {tier.subtitle}
         </p>

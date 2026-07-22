@@ -33,11 +33,17 @@ export default function TierRow({
     ? `linear-gradient(180deg, ${upper!.accent}, ${lower!.accent})`
     : tier.accent;
 
+  const ciftSayisi = isLove
+    ? groupCouples(mice).filter((u) => u.kind === "couple").length
+    : 0;
+
   return (
     <section
-      className="glass sys-window rise-in relative flex flex-col overflow-hidden sm:flex-row"
+      className="glass sys-window rise-in relative flex flex-col overflow-hidden"
       style={{
-        borderColor: isBetween ? "rgba(255,255,255,0.1)" : `${tier.accent}${glow >= 2.4 ? "55" : "30"}`,
+        borderColor: isBetween
+          ? "rgba(255,255,255,0.1)"
+          : `${tier.accent}${glow >= 2.4 ? "55" : "30"}`,
         boxShadow: `0 14px 34px rgba(0,0,0,0.4)${
           glow >= 2 && !isBetween ? `, 0 0 ${14 + glow * 10}px ${tier.accent}2e` : ""
         }`,
@@ -45,105 +51,93 @@ export default function TierRow({
     >
       {/* renkli sol kenar (ara bölgede iki rengin geçişi) */}
       <span
-        className="absolute inset-y-0 left-0 w-[4px]"
+        className="absolute inset-y-0 left-0 z-10 w-[4px]"
         style={{ background: edge }}
         aria-hidden
       />
 
-      {/* Plaka */}
+      {/*
+        Başlık şeridi — ÜSTTE, içerik ortalanmış, sayaç sağ uçta mutlak
+        konumda (ortalamayı kaydırmasın diye). Eskiden plaka yandaydı ve
+        196px genişlik yiyordu; artık kartlar bandın tamamını kullanıyor.
+      */}
       <div
-        className={`relative flex shrink-0 items-center gap-3 px-4 sm:w-[196px] sm:flex-col sm:items-start sm:justify-center ${
-          isBetween ? "py-2.5 sm:py-3" : "py-3 sm:py-3.5"
-        }`}
+        className="relative flex items-center justify-center gap-2.5 px-3 py-1.5"
         style={{
           background: isBetween
-            ? `linear-gradient(160deg, ${upper!.accent}17 0%, transparent 55%, ${lower!.accent}17 100%)`
-            : rowBg,
-          borderRight: "1px solid rgba(255,255,255,0.06)",
+            ? `linear-gradient(90deg, ${upper!.accent}26, ${lower!.accent}26)`
+            : `linear-gradient(90deg, ${tier.accent}${
+                glow >= 2.4 ? "2e" : "1f"
+              }, ${tier.accent}0a 55%, transparent)`,
+          borderBottom: `1px solid ${tier.accent}22`,
         }}
       >
         {isBetween && upper && lower ? (
-          <div className="flex items-center gap-3.5">
+          <>
             <DualSigil upper={upper} lower={lower} />
-            <div className="min-w-0">
-              <h2 className="font-display text-base font-bold uppercase leading-tight tracking-tight sm:text-lg">
-                <span style={{ color: upper.deep }}>{upper.sigil}</span>
-                <span className="mx-1 text-choco/40">×</span>
-                <span style={{ color: lower.deep }}>{lower.sigil}</span>
-                <span
-                  className="ml-2 bg-clip-text text-transparent"
-                  style={{
-                    backgroundImage: `linear-gradient(90deg, ${upper.deep}, ${lower.deep})`,
-                  }}
-                >
-                  ARASI
-                </span>
-              </h2>
-              <p className="mt-1 flex items-center gap-1.5">
-                <span
-                  className="rounded-full px-2 py-0.5 font-display text-[9px] font-bold uppercase tracking-[0.14em]"
-                  style={{
-                    color: "#e8edf4",
-                    background: `linear-gradient(90deg, ${upper.accent}33, ${lower.accent}33)`,
-                    border: "1px solid rgba(255,255,255,0.14)",
-                  }}
-                >
-                  Ara Bölge
-                </span>
-                <span className="font-display text-[10px] font-bold uppercase tracking-[0.14em] text-choco/40 tabular-nums">
-                  {mice.length} Fare
-                </span>
-              </p>
-            </div>
-          </div>
+            <h2 className="font-display text-sm font-bold uppercase leading-none tracking-tight sm:text-base">
+              <span style={{ color: upper.deep }}>{upper.sigil}</span>
+              <span className="mx-1 text-choco/35">×</span>
+              <span style={{ color: lower.deep }}>{lower.sigil}</span>
+              <span
+                className="ml-1.5 bg-clip-text text-transparent"
+                style={{
+                  backgroundImage: `linear-gradient(90deg, ${upper.deep}, ${lower.deep})`,
+                }}
+              >
+                ARASI
+              </span>
+            </h2>
+            <span
+              className="shrink-0 rounded-full px-2 py-0.5 font-display text-[9px] font-bold uppercase tracking-[0.14em]"
+              style={{
+                color: "#e8edf4",
+                background: `linear-gradient(90deg, ${upper.accent}38, ${lower.accent}38)`,
+                border: "1px solid rgba(255,255,255,0.14)",
+              }}
+            >
+              Ara Bölge
+            </span>
+          </>
         ) : (
           <>
-            <TierSigil tier={tier} size={glow >= 2.4 ? 52 : 46} />
-            <div className="min-w-0">
-              <h2
-                className={`font-display font-bold uppercase leading-tight tracking-tight ${
-                  glow >= 2.8
-                    ? "tier-label-legend text-lg sm:text-xl"
-                    : glow >= 2
-                    ? "text-base sm:text-lg"
-                    : "text-sm sm:text-base"
-                }`}
-                style={
-                  glow >= 2.8
-                    ? undefined
-                    : {
-                        color: tier.deep,
-                        textShadow:
-                          glow >= 1.5 ? `0 0 ${glow * 8}px ${tier.accent}66` : "none",
-                      }
-                }
-              >
-                {tier.label}
-              </h2>
-              <p className="text-[11px] font-semibold text-choco/60">
-                {tier.subtitle}
-              </p>
-              <p className="mt-0.5 font-display text-[9px] font-bold uppercase tracking-[0.18em] text-choco/35 tabular-nums">
-                {isLove
-                  ? `${
-                      groupCouples(mice).filter((u) => u.kind === "couple")
-                        .length
-                    } Çift · ${mice.length} Fare`
-                  : `${mice.length} Fare`}
-              </p>
-            </div>
+            <TierSigil tier={tier} size={30} />
+            <h2
+              className={`shrink-0 font-display text-sm font-bold uppercase leading-none tracking-tight sm:text-base ${
+                glow >= 2.8 ? "tier-label-legend" : ""
+              }`}
+              style={
+                glow >= 2.8
+                  ? undefined
+                  : {
+                      color: tier.deep,
+                      textShadow: `0 0 ${glow * 7}px ${tier.accent}66`,
+                    }
+              }
+            >
+              {tier.label}
+            </h2>
+            <span aria-hidden className="shrink-0 text-choco/25">
+              ·
+            </span>
+            <p
+              className="min-w-0 truncate font-system text-[13px] font-bold"
+              style={{ color: tier.deep, opacity: 0.8 }}
+            >
+              {tier.subtitle}
+            </p>
           </>
         )}
+
+        <span className="absolute right-3 font-display text-[10px] font-bold uppercase tracking-[0.16em] text-choco/35 tabular-nums">
+          {isLove ? `${ciftSayisi} Çift · ${mice.length} Fare` : `${mice.length} Fare`}
+        </span>
       </div>
 
-      {/* Kadro */}
-      <div
-        className={`flex flex-1 flex-wrap content-start gap-1.5 ${
-          isBetween ? "p-2.5" : "p-3"
-        }`}
-      >
+      {/* Kadro — bandın tüm genişliğini kullanır */}
+      <div className="flex flex-wrap content-start gap-1.5 p-2.5 pl-3">
         {mice.length === 0 ? (
-          <div className="flex w-full items-center py-2 pl-2 font-system text-sm font-semibold italic text-choco/25">
+          <div className="flex w-full items-center py-2 pl-1 font-system text-sm font-semibold italic text-choco/25">
             {isLove ? "— Henüz çift yok —" : "— Henüz kimse yok —"}
           </div>
         ) : isLove ? (
@@ -239,12 +233,12 @@ function DualSigil({ upper, lower }: { upper: TierConfig; lower: TierConfig }) {
     <div
       className="relative shrink-0"
       style={{
-        width: 50,
-        height: 50,
+        width: 30,
+        height: 30,
         filter: `drop-shadow(0 6px 12px ${upper.accent}33) drop-shadow(0 -2px 10px ${lower.accent}26)`,
       }}
     >
-      <svg viewBox="0 0 100 100" width={50} height={50}>
+      <svg viewBox="0 0 100 100" width={30} height={30}>
         <defs>
           <linearGradient id={`${gid}-u`} x1="0" y1="0" x2="1" y2="0.4">
             <stop offset="0%" stopColor={upper.accent} />
