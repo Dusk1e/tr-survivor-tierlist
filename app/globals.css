@@ -409,7 +409,7 @@ input[type="range"].score-slider:disabled {
   animation-iteration-count: infinite;
   will-change: transform;
 }
-.sd-sahne:hover .sd-kay { animation-play-state: paused; }
+/* NOT: uzerine gelince DURMAZ — akis hic kesilmesin istendi. */
 
 .sd-metin {
   text-shadow:

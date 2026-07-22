@@ -7,7 +7,7 @@ import { TickerConfig } from "@/lib/types";
 /**
  * "TFM Bülteni" haber bandı — 3B yatık koyu yüzey üzerinde yavaşça kayan
  * yazı. İçerik panelden yönetilir; kapalıysa ya da yazı boşsa hiç çizilmez.
- * Üzerine gelince kayma durur (okumak isteyen durdurabilsin).
+ * Fare üzerine gelince durmaz — akış hiç kesilmez.
  */
 export default function BreakingNews() {
   const [cfg, setCfg] = useState<TickerConfig | null>(null);
@@ -20,11 +20,25 @@ export default function BreakingNews() {
 
   useEffect(() => {
     oku();
+    // Panel ayrı bir sekmede olabilir; orada yapılan değişikliği bu sayfa
+    // duymaz. Bu yüzden sekmeye dönünce ve periyodik olarak yeniden okuruz —
+    // roster/oy verisiyle aynı davranış.
+    const onVisible = () => {
+      if (document.visibilityState === "visible") oku();
+    };
     window.addEventListener(DATA_EVENT, oku);
     window.addEventListener("storage", oku);
+    window.addEventListener("focus", oku);
+    document.addEventListener("visibilitychange", onVisible);
+    const t = window.setInterval(() => {
+      if (document.visibilityState === "visible") oku();
+    }, 12_000);
     return () => {
       window.removeEventListener(DATA_EVENT, oku);
       window.removeEventListener("storage", oku);
+      window.removeEventListener("focus", oku);
+      document.removeEventListener("visibilitychange", onVisible);
+      window.clearInterval(t);
     };
   }, [oku]);
 
