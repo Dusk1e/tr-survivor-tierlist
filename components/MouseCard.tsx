@@ -25,6 +25,10 @@ export default function MouseCard({ mouse }: { mouse: Mouse }) {
   const agg = aggFor(mouse.id);
   // Giriş yapan oyuncunun bu fareye verdiği puan (yoksa undefined).
   const benimOyum = myVoteFor(mouse.id);
+  // Gerçek oy varsa ve çoğunluk "hotkey kullanıyor" diyorsa damga çıkar.
+  const hotkeyDamgasi = Boolean(
+    !isLove && agg && agg.count > 0 && agg.hotkeyYesPct >= 50
+  );
 
   const [peek, setPeek] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -136,6 +140,28 @@ export default function MouseCard({ mouse }: { mouse: Mouse }) {
               </svg>
             </span>
           )}
+          {/* Hotkey damgası — oyların yarısından fazlası "kullanıyor" derse
+              sol altta kırmızı, hafif eğik bir H belirir. Puan halkasının
+              çapraz karşısında durur, üstteki tik ile çakışmaz. */}
+          {hotkeyDamgasi && (
+            <span
+              className="absolute -bottom-1.5 -left-2.5 flex h-[26px] w-[26px] items-center justify-center rounded-md border-2 font-display text-[15px] font-bold leading-none"
+              style={{
+                color: "#ff6b73",
+                borderColor: "#e5646b",
+                background: "#2a1013",
+                transform: "rotate(-14deg)",
+                boxShadow: "0 0 12px rgba(229,100,107,0.55)",
+              }}
+              title={`Oy verenlerin %${Math.round(
+                agg?.hotkeyYesPct ?? 0
+              )}'i hotkey kullandığını düşünüyor`}
+              aria-label="Hotkey kullanıyor"
+            >
+              H
+            </span>
+          )}
+
           {/* Aşk Köşesi'nde puan yoktur — puanın yerini kalp alır. */}
           <div className="absolute -bottom-2 -right-3">
             {isLove ? (

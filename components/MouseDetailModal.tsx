@@ -184,15 +184,14 @@ export default function MouseDetailModal({
 
                 <ScoreBars scores={agg.avg} />
 
-                {/* Hotkey yüzdesi — yalnızca gerçek oy varsa anlamlı */}
+                {/* Hotkey — yalnızca gerçek oy varsa anlamlı. Kendi paneli
+                    var çünkü en çok merak edilen bilgi bu. */}
                 {agg.count > 0 && (
                   <div className="mt-4">
-                    <BinaryStat
-                      label="Hotkey kullandığını düşünenler"
+                    <HotkeyPanel
                       yesPct={agg.hotkeyYesPct}
                       yes={agg.hotkeyYes}
                       no={agg.hotkeyNo}
-                      yesColor="#e5646b"
                     />
                   </div>
                 )}
@@ -348,51 +347,88 @@ function Chip({
 }
 
 /** Evet/Hayır sonucu — yüzde dolgu çubuğu + sayılar. */
-function BinaryStat({
-  label,
+/**
+ * Hotkey sonucu — detay penceresindeki en dikkat çekici kutu. Büyük yüzde,
+ * kırmızı eğik H damgası ve evet/hayır dağılımı bir arada.
+ */
+function HotkeyPanel({
   yesPct,
   yes,
   no,
-  yesColor,
 }: {
-  label: string;
   yesPct: number;
   yes: number;
   no: number;
-  yesColor: string;
 }) {
-  const verdictYes = yesPct >= 50;
   const pct = Math.round(yesPct);
+  const kullaniyor = pct >= 50;
+  const renk = kullaniyor ? "#e5646b" : "#5ad06a";
+  const toplam = yes + no;
+
   return (
-    <div className="rounded-xl border border-white/8 bg-white/[0.03] p-3">
-      <div className="mb-1.5 flex items-center justify-between gap-2">
-        <span className="font-system text-[12px] font-semibold text-choco/75">
-          {label}
-        </span>
+    <div
+      className="rounded-2xl border-2 p-4"
+      style={{
+        borderColor: `${renk}66`,
+        background: `linear-gradient(135deg, ${renk}1f, ${renk}08)`,
+        boxShadow: `0 0 22px ${renk}26`,
+      }}
+    >
+      <div className="flex items-center gap-4">
+        {/* Eğik H damgası — karttakinin büyüğü */}
         <span
-          className="rounded-md px-1.5 py-0.5 font-display text-[10px] font-bold uppercase tracking-wide tabular-nums"
+          className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-xl border-2 font-display text-[30px] font-bold leading-none"
           style={{
-            color: verdictYes ? yesColor : "#9aa6b4",
-            background: verdictYes ? `${yesColor}1c` : "rgba(255,255,255,0.06)",
-            border: `1px solid ${verdictYes ? `${yesColor}55` : "rgba(255,255,255,0.12)"}`,
+            color: renk,
+            borderColor: renk,
+            background: kullaniyor ? "#2a1013" : "#0f2116",
+            transform: "rotate(-14deg)",
+            boxShadow: `0 0 16px ${renk}66`,
           }}
+          aria-hidden
         >
-          {verdictYes ? "Evet" : "Hayır"} %{verdictYes ? pct : 100 - pct}
+          H
         </span>
+
+        <div className="min-w-0 flex-1">
+          <div className="font-display text-[11px] font-bold uppercase tracking-[0.16em] text-choco/45">
+            Hotkey
+          </div>
+          <div className="mt-0.5 flex items-baseline gap-2">
+            <span
+              className="font-display text-3xl font-bold tabular-nums"
+              style={{ color: renk, textShadow: `0 0 18px ${renk}66` }}
+            >
+              %{kullaniyor ? pct : 100 - pct}
+            </span>
+            <span className="font-system text-sm font-bold text-choco/80">
+              {kullaniyor ? "kullanıyor diyor" : "kullanmıyor diyor"}
+            </span>
+          </div>
+          <div className="mt-0.5 font-system text-xs font-medium text-choco/45 tabular-nums">
+            {toplam} oyun {yes} tanesi evet, {no} tanesi hayır
+          </div>
+        </div>
       </div>
-      <div className="h-2 w-full overflow-hidden rounded-full bg-white/8">
+
+      {/* Dağılım çubuğu */}
+      <div className="mt-3 flex h-2.5 w-full overflow-hidden rounded-full bg-white/8">
         <div
-          className="h-full rounded-full"
+          className="h-full"
           style={{
             width: `${pct}%`,
-            background: `linear-gradient(90deg, ${yesColor}99, ${yesColor})`,
+            background: "linear-gradient(90deg, #e5646b99, #e5646b)",
             transition: "width 0.5s ease",
           }}
         />
+        <div
+          className="h-full flex-1"
+          style={{ background: "rgba(90,208,106,0.35)" }}
+        />
       </div>
-      <div className="mt-1 flex justify-between font-system text-[10px] font-semibold text-choco/40 tabular-nums">
-        <span>Evet %{pct} ({yes})</span>
-        <span>Hayır %{100 - pct} ({no})</span>
+      <div className="mt-1 flex justify-between font-system text-[10px] font-bold uppercase tracking-wider">
+        <span style={{ color: "#e5646b" }}>Evet %{pct}</span>
+        <span style={{ color: "#5ad06a" }}>Hayır %{100 - pct}</span>
       </div>
     </div>
   );
