@@ -115,39 +115,43 @@ body {
 .flag-banner__portrait {
   position: absolute;
   left: 50%;
-  top: 30px;
+  top: 2px;
   transform: translateX(-50%);
-  width: 240px;
-  height: 300px;
+  width: 200px;
+  height: 235px;
   background-image: url("/ataturk.jpg");
   background-size: cover;
   /* Üstten hizalanır: kalpak yukarıda, yüz aşağıda kalsın. */
   background-position: center top;
   background-repeat: no-repeat;
   filter: grayscale(1) contrast(1.05);
-  opacity: 0.3;
+  opacity: 0.46;
   /* Elips maske merkezi yukarıda: omuzlar ve alt kenar daha hızlı erir,
      portre bandın içinden çıkıyormuş gibi görünür. */
   -webkit-mask-image: radial-gradient(
-    ellipse 56% 50% at 50% 36%,
-    #000 44%,
-    rgba(0, 0, 0, 0.45) 70%,
-    transparent 92%
+    ellipse 62% 58% at 50% 42%,
+    #000 50%,
+    rgba(0, 0, 0, 0.5) 74%,
+    transparent 94%
   );
   mask-image: radial-gradient(
-    ellipse 56% 50% at 50% 36%,
-    #000 44%,
-    rgba(0, 0, 0, 0.45) 70%,
-    transparent 92%
+    ellipse 62% 58% at 50% 42%,
+    #000 50%,
+    rgba(0, 0, 0, 0.5) 74%,
+    transparent 94%
   );
 }
 
 .flag-banner__emblem {
   position: absolute;
   left: 50%;
-  top: 40px;
+  /* 220px idi. Ay-yildiz 142px yuksekligindeydi ve tum bas (238px) ile
+     birlikte bultenden onceki bosluga sigmiyordu; yuz bandin arkasinda
+     kaliyordu. 150px'e indirilince ikisi de rahat siğiyor ve emblem
+     kalpagin genisligini asmiyor. */
+  top: 22px;
   transform: translateX(-50%);
-  width: 220px;
+  width: 150px;
   opacity: 0.92;
   filter: drop-shadow(0 0 14px rgba(255, 255, 255, 0.55))
     drop-shadow(0 0 34px rgba(255, 240, 240, 0.3));
