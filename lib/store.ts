@@ -223,7 +223,7 @@ export async function submitVote(
     throw new Error("Onaylanmış puanın artık değiştirilemez.");
   }
 
-  const row = {
+  const temel = {
     voter_id: voter.id,
     voter_nick: voter.nickname,
     target_id: targetId,
@@ -232,18 +232,34 @@ export async function submitVote(
     saman_play: scores.saman_play,
     ws_guven: scores.ws_guven,
     hotkey,
-    // Oyun "artı mı eksi mi" olduğu bu değere göre belirlenir ve bir daha
-    // değişmez. Hedef sonradan tier değiştirse bile oy yeniden yorumlanmaz.
-    target_baseline: tierOf(target.tier).baseline,
     status: "pending",
     decided_at: null,
     decided_by: null,
   };
 
-  const { error } = existing
-    ? await c.from(VOTES_TABLE).update(row).eq("id", existing.id)
-    : await c.from(VOTES_TABLE).insert({ id: crypto.randomUUID(), ...row });
-  if (error) throw new Error(error.message);
+  // Oyun "artı mı eksi mi" olduğu bu değere göre belirlenir ve bir daha
+  // değişmez. Hedef sonradan tier değiştirse bile oy yeniden yorumlanmaz.
+  const row = { ...temel, target_baseline: tierOf(target.tier).baseline };
+
+  const yaz = (veri: Record<string, unknown>) =>
+    existing
+      ? c.from(VOTES_TABLE).update(veri).eq("id", existing.id)
+      : c.from(VOTES_TABLE).insert({ id: crypto.randomUUID(), ...veri });
+
+  const { error } = await yaz(row);
+  if (!error) return;
+
+  // target_baseline sütunu henüz eklenmemişse oy verme TAMAMEN kilitlenmesin:
+  // sütunsuz tekrar dene. Bu durumda oy, eski davranışla (hedefin güncel
+  // tabanına göre) değerlendirilir; SQL çalıştırılınca yeni oylar tabanını
+  // kaydetmeye başlar.
+  if (/target_baseline/i.test(error.message)) {
+    const { error: ikinci } = await yaz(temel);
+    if (!ikinci) return;
+    throw new Error(ikinci.message);
+  }
+
+  throw new Error(error.message);
 }
 
 export async function decideVote(
