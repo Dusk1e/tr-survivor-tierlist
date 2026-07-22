@@ -23,7 +23,15 @@ export default function ScoreRing({
 }) {
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
-  const pct = value == null ? 0 : Math.max(0, Math.min(100, value));
+
+  /*
+    GÖSTERİLEN puan — renk, halka uzunluğu ve rakam HEPSİ bundan hesaplanır.
+    Önceden renk ham değerden (83.6), rakam ise yuvarlanmış değerden (84)
+    geliyordu; bu yüzden ekranda ikisi de "84" yazan iki fare farklı renk
+    alabiliyordu. Kullanıcı sayıyı görüyor, renk o sayıyla aynı fikirde olmalı.
+  */
+  const pct =
+    value == null ? 0 : Math.round(Math.max(0, Math.min(100, value)));
 
   const renk =
     value == null
@@ -56,7 +64,7 @@ export default function ScoreRing({
     <div
       className="relative inline-block"
       style={{ width: size, height: size }}
-      title={renk.etiket ? `${Math.round(pct)} · ${renk.etiket}` : undefined}
+      title={renk.etiket ? `${pct} · ${renk.etiket}` : undefined}
     >
       <svg width={size} height={size} className="-rotate-90">
         {renk.ikinci && (
@@ -103,7 +111,7 @@ export default function ScoreRing({
         className="absolute inset-0 flex items-center justify-center font-display font-bold"
         style={{ color: yaziRengi, fontSize: size * 0.3 }}
       >
-        {value == null ? "–" : `${Math.round(pct)}`}
+        {value == null ? "–" : `${pct}`}
       </span>
 
       {/* Onaylı oy sayısı — dairenin SAĞ ALTINDA, kırmızı rozet.

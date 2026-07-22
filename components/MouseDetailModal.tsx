@@ -42,7 +42,9 @@ export default function MouseDetailModal({
   const agg = aggFor(mouse.id);
   const mine = isMe(mouse.id);
   const myVote = myVoteFor(mouse.id);
-  const overallZone = agg ? zoneOf(agg.overall) : null;
+  // Bölge etiketi EKRANDA YAZAN sayıdan hesaplanır. Ham değerden hesaplanınca
+  // "%84" yazıp bir alttaki bandın etiketini gösterebiliyordu.
+  const overallZone = agg ? zoneOf(Math.round(agg.overall)) : null;
 
   async function handleSubmit(scores: any, hotkey: boolean) {
     if (!mouse) return;
