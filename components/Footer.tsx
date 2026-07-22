@@ -33,10 +33,6 @@ export default function Footer() {
             Blacklean
           </span>
         </p>
-        <p className="mt-1.5 font-system text-xs font-medium text-choco/45">
-          Bu tierlist, TR Survivor topluluğuna gönül verenler tarafından
-          hazırlandı.
-        </p>
       </div>
 
       <div className="flex flex-col items-center justify-between gap-3 text-center sm:flex-row sm:text-left">
