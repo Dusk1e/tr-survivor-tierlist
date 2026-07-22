@@ -125,7 +125,15 @@ function NasilOyVerilir() {
         ))}
       </div>
 
-      <p className="mx-auto mt-4 max-w-2xl text-center font-system text-xs font-medium leading-relaxed text-choco/45">
+      {/* 2. adımın rengiyle bağ kurar — şifrenin nereden alınacağı. */}
+      <p
+        className="mt-4 text-center font-system text-[13px] font-bold"
+        style={{ color: "#d7a441" }}
+      >
+        Şifreni yetkililerden alabilirsin.
+      </p>
+
+      <p className="mx-auto mt-1.5 max-w-2xl text-center font-system text-xs font-medium leading-relaxed text-choco/45">
         Oynayışını bilmediğin fareleri puanlama lütfen. Puanlar yetkili
         onayından sonra ortalamaya işlenir.
       </p>
