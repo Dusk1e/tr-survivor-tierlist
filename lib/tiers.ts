@@ -151,10 +151,20 @@ export function weightOf(slot: string | undefined): number {
 /* ======================= puana göre tier rengi ========================== */
 
 export interface PuanRengi {
-  /** Ana renk — halka ve rakam. */
+  /** Halkanın ana rengi. */
   ana: string;
   /** Varsa ikinci renk: iki renkli geçiş (M – S arası bandı). */
   ikinci?: string;
+  /**
+   * Rakamın rengi. Sönük bantlarda halka rengi koyu zeminde zor okunuyor,
+   * o yüzden rakam bir tık açık bir tonla yazılır. Yoksa `ana` kullanılır.
+   */
+  yazi?: string;
+  /**
+   * Parıltı gücü 0..1. Puan düştükçe azalır: renk "hangi tier" bilgisini,
+   * parıltı da "ne kadar iyi" bilgisini taşır. İki sinyal aynı yöne bakar.
+   */
+  parilti: number;
   /** Puanın hangi banda düştüğü — ipucu metninde kullanılır. */
   etiket: string;
 }
@@ -169,14 +179,24 @@ export interface PuanRengi {
  * turuncu, 30'un altı kırmızı.
  */
 const PUAN_BANTLARI: { esik: number; renk: PuanRengi }[] = [
-  { esik: 89, renk: { ana: "#f3cf7e", etiket: "Monarch" } },
-  { esik: 84, renk: { ana: "#f3cf7e", ikinci: "#c4b0fc", etiket: "M – S Arası" } },
-  { esik: 79, renk: { ana: "#c4b0fc", etiket: "S-Rank" } },
-  { esik: 73, renk: { ana: "#8ad2f2", etiket: "A-Rank" } },
-  { esik: 63, renk: { ana: "#7fd6c6", etiket: "B-Rank" } },
-  { esik: 55, renk: { ana: "#a3d193", etiket: "C-Rank" } },
-  { esik: 30, renk: { ana: "#f0913c", etiket: "Gelişmeli" } },
-  { esik: 0, renk: { ana: "#e5646b", etiket: "Düşük" } },
+  { esik: 89, renk: { ana: "#ffd166", parilti: 1, etiket: "Monarch" } },
+  {
+    esik: 84,
+    renk: {
+      ana: "#ffd166",
+      ikinci: "#b79bff",
+      yazi: "#e3c5c9",
+      parilti: 0.75,
+      etiket: "M – S Arası",
+    },
+  },
+  { esik: 79, renk: { ana: "#b79bff", parilti: 0.55, etiket: "S-Rank" } },
+  { esik: 73, renk: { ana: "#5fb8ec", parilti: 0.35, etiket: "A-Rank" } },
+  { esik: 63, renk: { ana: "#3fbfa6", parilti: 0.18, etiket: "B-Rank" } },
+  // Buradan aşağısı sönük: başarısızlık, başarıdan daha çok bağırmasın.
+  { esik: 55, renk: { ana: "#77a458", yazi: "#93bf70", parilti: 0, etiket: "C-Rank" } },
+  { esik: 30, renk: { ana: "#cf7628", yazi: "#e08b3d", parilti: 0, etiket: "Gelişmeli" } },
+  { esik: 0, renk: { ana: "#b8474e", yazi: "#d05a61", parilti: 0, etiket: "Düşük" } },
 ];
 
 export function puanRengi(v: number): PuanRengi {

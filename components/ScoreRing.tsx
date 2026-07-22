@@ -27,8 +27,25 @@ export default function ScoreRing({
 
   const renk =
     value == null
-      ? { ana: "#5b6470", ikinci: undefined, etiket: "" }
+      ? {
+          ana: "#5b6470",
+          ikinci: undefined,
+          yazi: undefined,
+          parilti: 0,
+          etiket: "",
+        }
       : puanRengi(pct);
+
+  const yaziRengi = renk.yazi ?? renk.ana;
+  // Parıltı banda göre: üst bantlar ışıldar, alt bantlar sessizdir.
+  const golge =
+    renk.parilti > 0
+      ? `drop-shadow(0 0 ${2 + renk.parilti * 5}px ${renk.ana}${
+          Math.round(90 + renk.parilti * 120)
+            .toString(16)
+            .padStart(2, "0")
+        })`
+      : "none";
 
   // İki renkli bantta halka için gradyan gerekiyor; id'ler örnek başına eşsiz.
   const uid = useId().replace(/[:»]/g, "");
@@ -50,12 +67,14 @@ export default function ScoreRing({
             </linearGradient>
           </defs>
         )}
+        {/* İz — halkanın kendi renginin çok soluk hâli. Nötr griye göre
+            daha bütünlüklü duruyor, halka zemine oturmuş gibi görünüyor. */}
         <circle
           cx={size / 2}
           cy={size / 2}
           r={r}
-          fill="rgba(10,14,20,0.72)"
-          stroke="rgba(255,255,255,0.1)"
+          fill="rgba(10,14,20,0.78)"
+          stroke={`${renk.ana}26`}
           strokeWidth={stroke}
         />
         {value != null && (
@@ -71,26 +90,18 @@ export default function ScoreRing({
             strokeDashoffset={c - (c * pct) / 100}
             style={{
               transition: "stroke-dashoffset 0.6s ease",
-              filter: `drop-shadow(0 0 4px ${renk.ana}aa)`,
+              filter: golge,
             }}
           />
         )}
       </svg>
 
+      {/* Rakam DÜZ renkle yazılır. İki renkli bantta gradyan metin
+          deneniyordu ama bu punto (~10px) için okunaksızdı; geçiş etkisi
+          zaten halkada duruyor, rakamın okunması daha önemli. */}
       <span
         className="absolute inset-0 flex items-center justify-center font-display font-bold"
-        style={
-          renk.ikinci
-            ? {
-                // İki renkli bantta rakam da geçişli boyanır.
-                backgroundImage: `linear-gradient(135deg, ${renk.ana}, ${renk.ikinci})`,
-                WebkitBackgroundClip: "text",
-                backgroundClip: "text",
-                color: "transparent",
-                fontSize: size * 0.3,
-              }
-            : { color: renk.ana, fontSize: size * 0.3 }
-        }
+        style={{ color: yaziRengi, fontSize: size * 0.3 }}
       >
         {value == null ? "–" : `${Math.round(pct)}`}
       </span>
