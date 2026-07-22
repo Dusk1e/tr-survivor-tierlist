@@ -4,6 +4,7 @@ import Link from "next/link";
 import { formatName } from "@/lib/format";
 import { hasAnyPerm } from "@/lib/perms";
 import { useSession } from "./SessionProvider";
+import AlweshNote from "./AlweshNote";
 
 /**
  * Genel sayfa başlığının sağ tarafı. Fare girişi kart üzerinden yapılır;
@@ -35,6 +36,9 @@ export default function HeaderAuthControls() {
           </button>
         </>
       )}
+
+      {/* Topluluğa açıklama — admin girişinin hemen solunda, dikkat çeksin */}
+      <AlweshNote />
 
       <Link href="/admin" className="btn-admin text-sm">
         Admin Girişi

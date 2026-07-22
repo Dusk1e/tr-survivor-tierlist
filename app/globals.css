@@ -419,3 +419,34 @@ input[type="range"].score-slider:disabled {
   .sd-nokta { animation: none; }
   .sd-yuzey { transform: none; }
 }
+
+/* ================== Alwesh'ten Not düğmesi (başlık) ===================== */
+.not-dugme {
+  color: #3a2607;
+  background: linear-gradient(180deg, #f7d98a 0%, #e8b64c 55%, #c9962f 100%);
+  border: 1px solid rgba(255, 240, 200, 0.55);
+  box-shadow:
+    0 4px 14px rgba(232, 182, 76, 0.35),
+    0 1px 0 rgba(255, 255, 255, 0.65) inset,
+    0 -2px 0 rgba(0, 0, 0, 0.15) inset;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.not-dugme:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 7px 20px rgba(232, 182, 76, 0.5),
+    0 1px 0 rgba(255, 255, 255, 0.75) inset,
+    0 -2px 0 rgba(0, 0, 0, 0.15) inset;
+}
+.not-dugme:active { transform: translateY(0); }
+
+@keyframes not-nabiz {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.45; transform: scale(0.82); }
+}
+.not-nokta { animation: not-nabiz 1.8s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .not-nokta { animation: none; }
+  .not-dugme { transition: none; }
+}
