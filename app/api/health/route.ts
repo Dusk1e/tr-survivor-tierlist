@@ -65,6 +65,18 @@ export async function GET() {
         : ((real.data ?? []) as { name: string }[]).map((r) => r.name);
       info.sonYetkiliIslemi = authorityDebug.son;
 
+      // Puanlama göçü: oylar kendi taban puanını saklayabiliyor mu?
+      const oySutun = await c.from("votes").select("target_baseline").limit(1);
+      info.oyTabaniSutunu = oySutun.error
+        ? {
+            durum: "YOK",
+            etki:
+              "Oy verme çalışır ama oylar eski mantıkla (hedefin güncel tabanına göre) değerlendirilir.",
+            yapilacak:
+              "Supabase → SQL Editor: alter table public.votes add column if not exists target_baseline integer;",
+          }
+        : { durum: "VAR" };
+
       // TFM Bülteni — settings tablosu gerçekte ne durumda?
       const ayar = await c.from("settings").select("key,value");
       if (ayar.error) {
