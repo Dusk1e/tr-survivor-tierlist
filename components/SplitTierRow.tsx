@@ -62,9 +62,10 @@ function Yarim({ tier, mice }: { tier: TierConfig; mice: Mouse[] }) {
 
   return (
     <div className="flex min-w-0 flex-1 flex-col">
-      {/* Başlık şeridi — sigil, ad, alt yazı ve sayaç tek satırda */}
+      {/* Başlık şeridi — içerik ORTALANIR; sayaç sağ uçta mutlak konumda
+          durur ki ortalamayı kaydırmasın. */}
       <div
-        className="flex items-center gap-2 px-3 py-1.5"
+        className="relative flex items-center justify-center gap-2.5 px-3 py-2"
         style={{
           background: `linear-gradient(180deg, ${tier.accent}${
             glow >= 2.4 ? "22" : "14"
@@ -72,10 +73,10 @@ function Yarim({ tier, mice }: { tier: TierConfig; mice: Mouse[] }) {
           borderBottom: "1px solid rgba(255,255,255,0.07)",
         }}
       >
-        <TierSigil tier={tier} size={30} />
+        <TierSigil tier={tier} size={32} />
 
         <h2
-          className={`shrink-0 font-display text-sm font-bold uppercase leading-none tracking-tight ${
+          className={`shrink-0 font-display text-base font-bold uppercase leading-none tracking-tight ${
             glow >= 2.8 ? "tier-label-legend" : ""
           }`}
           style={
@@ -87,15 +88,19 @@ function Yarim({ tier, mice }: { tier: TierConfig; mice: Mouse[] }) {
           {tier.label}
         </h2>
 
-        <span aria-hidden className="shrink-0 text-choco/20">
+        <span aria-hidden className="shrink-0 text-choco/25">
           ·
         </span>
 
-        <p className="min-w-0 truncate font-system text-[11px] font-medium text-choco/45">
+        {/* Alt yazı — tier renginde, belirgin */}
+        <p
+          className="min-w-0 truncate font-system text-[13px] font-bold"
+          style={{ color: tier.deep, opacity: 0.85 }}
+        >
           {tier.subtitle}
         </p>
 
-        <span className="ml-auto shrink-0 font-display text-[10px] font-bold uppercase tracking-[0.16em] text-choco/35 tabular-nums">
+        <span className="absolute right-3 font-display text-[10px] font-bold uppercase tracking-[0.16em] text-choco/35 tabular-nums">
           {mice.length} Fare
         </span>
       </div>

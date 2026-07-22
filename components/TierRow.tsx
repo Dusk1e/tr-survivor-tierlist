@@ -52,8 +52,8 @@ export default function TierRow({
 
       {/* Plaka */}
       <div
-        className={`relative flex shrink-0 items-center gap-4 px-5 sm:w-52 sm:flex-col sm:items-start sm:justify-center ${
-          isBetween ? "py-3 sm:py-4" : "py-3 sm:py-5"
+        className={`relative flex shrink-0 items-center gap-3 px-4 sm:w-[196px] sm:flex-col sm:items-start sm:justify-center ${
+          isBetween ? "py-2.5 sm:py-3" : "py-3 sm:py-3.5"
         }`}
         style={{
           background: isBetween
@@ -98,15 +98,15 @@ export default function TierRow({
           </div>
         ) : (
           <>
-            <TierSigil tier={tier} size={glow >= 2.4 ? 62 : 54} />
+            <TierSigil tier={tier} size={glow >= 2.4 ? 52 : 46} />
             <div className="min-w-0">
               <h2
                 className={`font-display font-bold uppercase leading-tight tracking-tight ${
                   glow >= 2.8
-                    ? "tier-label-legend text-xl sm:text-2xl"
+                    ? "tier-label-legend text-lg sm:text-xl"
                     : glow >= 2
-                    ? "text-lg sm:text-xl"
-                    : "text-base sm:text-lg"
+                    ? "text-base sm:text-lg"
+                    : "text-sm sm:text-base"
                 }`}
                 style={
                   glow >= 2.8
@@ -120,10 +120,10 @@ export default function TierRow({
               >
                 {tier.label}
               </h2>
-              <p className="text-xs font-semibold text-choco/55">
+              <p className="text-[11px] font-semibold text-choco/60">
                 {tier.subtitle}
               </p>
-              <p className="mt-0.5 font-display text-[10px] font-bold uppercase tracking-[0.2em] text-choco/35 tabular-nums">
+              <p className="mt-0.5 font-display text-[9px] font-bold uppercase tracking-[0.18em] text-choco/35 tabular-nums">
                 {isLove
                   ? `${
                       groupCouples(mice).filter((u) => u.kind === "couple")
@@ -143,7 +143,7 @@ export default function TierRow({
         }`}
       >
         {mice.length === 0 ? (
-          <div className="flex w-full items-center py-4 pl-2 font-system text-sm font-semibold italic text-choco/25">
+          <div className="flex w-full items-center py-2 pl-2 font-system text-sm font-semibold italic text-choco/25">
             {isLove ? "— Henüz çift yok —" : "— Henüz kimse yok —"}
           </div>
         ) : isLove ? (
