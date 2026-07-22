@@ -8,9 +8,10 @@ const BASLANGIC = [
   { ad: "Monarch", puan: 89, renk: "#f3cf7e" },
   { ad: "M – S Arası", puan: 84, renk: "#d9c4fb" },
   { ad: "S-Rank", puan: 79, renk: "#c4b0fc" },
-  { ad: "A-Rank", puan: 73, renk: "#8ad2f2" },
-  { ad: "B-Rank", puan: 63, renk: "#7fd6c6" },
-  { ad: "C-Rank", puan: 55, renk: "#a3d193" },
+  { ad: "S – A Arası", puan: 73, renk: "#a6c0f6" },
+  { ad: "A-Rank", puan: 67, renk: "#8ad2f2" },
+  { ad: "B-Rank", puan: 60, renk: "#7fd6c6" },
+  { ad: "C-Rank", puan: 52, renk: "#a3d193" },
 ];
 
 /**

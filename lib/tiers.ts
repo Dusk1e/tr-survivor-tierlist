@@ -1,7 +1,8 @@
 import { SlotId, TierConfig, TierId } from "./types";
 
 /**
- * Rank ladder. 6 main tiers + 5 "between" slots (e.g. S ile A arası).
+ * Rank ladder: 6 ana tier + 2 ara bölge (M – S, S – A) + Monarch'ın
+ * saygı yarısı.
  * `glow` (0..3) scales visual intensity — higher tiers look brighter/cooler.
  */
 const MAIN: Omit<TierConfig, "kind">[] = [
@@ -36,7 +37,7 @@ const MAIN: Omit<TierConfig, "kind">[] = [
     deep: "#8ad2f2",
     sigil: "A",
     glow: 1.8,
-    baseline: 73,
+    baseline: 67,
   },
   {
     id: "b",
@@ -47,7 +48,7 @@ const MAIN: Omit<TierConfig, "kind">[] = [
     deep: "#7fd6c6",
     sigil: "B",
     glow: 1.2,
-    baseline: 63,
+    baseline: 60,
   },
   {
     id: "c",
@@ -58,7 +59,7 @@ const MAIN: Omit<TierConfig, "kind">[] = [
     deep: "#a3d193",
     sigil: "C",
     glow: 0.7,
-    baseline: 55,
+    baseline: 52,
   },
   {
     id: "de",
@@ -74,7 +75,11 @@ const MAIN: Omit<TierConfig, "kind">[] = [
   },
 ];
 
-function between(upper: Omit<TierConfig, "kind">, lower: Omit<TierConfig, "kind">): TierConfig {
+function between(
+  upper: Omit<TierConfig, "kind">,
+  lower: Omit<TierConfig, "kind">,
+  baseline: number
+): TierConfig {
   return {
     id: `${upper.id}_${lower.id === "de" ? "de" : lower.id}` as SlotId,
     kind: "between",
@@ -85,15 +90,15 @@ function between(upper: Omit<TierConfig, "kind">, lower: Omit<TierConfig, "kind"
     deep: upper.deep,
     sigil: "◆",
     glow: (upper.glow + lower.glow) / 2,
-    baseline: 84,
+    baseline,
     upper: upper.id as TierId,
     lower: lower.id as TierId,
   };
 }
 
 /**
- * Merdiven, yukarıdan aşağıya. Tek ara bölge MONARCH ile S-RANK arasındadır;
- * diğer tier'lar arasında ara bölge yoktur.
+ * Merdiven, yukarıdan aşağıya. İki ara bölge vardır: MONARCH – S ve S – A.
+ * Diğer tier'lar arasında ara bölge yoktur.
  */
 /**
  * Monarch bandının sağ yarısı. Monarch'ın BİREBİR kopyası — renk, rozet,
@@ -101,17 +106,39 @@ function between(upper: Omit<TierConfig, "kind">, lower: Omit<TierConfig, "kind"
  */
 const MONARCH_RESPECT_SUBTITLE = "Uzun süredir aktif olmayan efsaneler";
 
+/**
+ * Ara bölgelerin taban puanları — üstündeki ve altındaki tier'ın tam ortası
+ * değil, elle seçilmiş değerler. Merdiven yukarıdan aşağıya:
+ *   89 · 84 · 79 · 73 · 67 · 60 · 52 · 29
+ * Aralıklar aşağı indikçe genişler (5, 5, 6, 6, 7, 8, 23): üst basamaklar
+ * birbirine yakın, alt basamaklar daha geniş — üstte fark etmek zor, altta
+ * kolay olmalı.
+ */
+const ARA_TABAN: Record<string, number> = {
+  monarch_s: 84,
+  s_a: 73,
+};
+
 export const SLOTS: TierConfig[] = MAIN.flatMap((t, i) => {
   const main: TierConfig = { ...t, kind: "main" };
-  if (t.id !== "monarch") return [main];
-
-  const respect: TierConfig = {
-    ...main,
-    id: "monarch_respect" as SlotId,
-    subtitle: MONARCH_RESPECT_SUBTITLE,
-  };
   const next = MAIN[i + 1];
-  return next ? [main, respect, between(t, next)] : [main, respect];
+
+  if (t.id === "monarch") {
+    const respect: TierConfig = {
+      ...main,
+      id: "monarch_respect" as SlotId,
+      subtitle: MONARCH_RESPECT_SUBTITLE,
+    };
+    return next
+      ? [main, respect, between(t, next, ARA_TABAN.monarch_s)]
+      : [main, respect];
+  }
+
+  if (t.id === "s" && next) {
+    return [main, between(t, next, ARA_TABAN.s_a)];
+  }
+
+  return [main];
 });
 
 export const SLOT_MAP: Record<string, TierConfig> = SLOTS.reduce(
@@ -138,6 +165,7 @@ export const SLOT_WEIGHT: Record<SlotId, number> = {
   monarch_respect: 1.8,
   monarch_s: 1.65,
   s: 1.5,
+  s_a: 1.4,
   a: 1.3,
   b: 1.15,
   c: 1.0,
@@ -170,13 +198,16 @@ export interface PuanRengi {
 }
 
 /**
- * Puan halkasının rengi, puanın denk geldiği TIER'ın rengidir.
- * Böylece 90 puanlık bir fare Monarch altınıyla, 65 puanlık bir fare
- * B-Rank turkuazıyla parlar; renk tek başına sıralamayı anlatır.
+ * Puan halkasının rengi, puanın denk geldiği SLOT'un rengidir. Eşikler
+ * slot'ların taban puanlarıyla birebir aynıdır — yani 73 puan alan bir fare
+ * "S – A arası" rengini alır, çünkü 73 o bölgenin taban puanıdır.
  *
- * Tier renkleri (`deep` tonları) kullanılır — koyu zeminde daha okunur.
- * 55'in altı tier'lara denk gelmediği için uyarı renkleri: 30'a kadar
- * turuncu, 30'un altı kırmızı.
+ * İki ara bölge iki renklidir: M – S altından mora, S – A mordan maviye.
+ * Taban puanların altına düşenler için uyarı renkleri: 30'a kadar turuncu,
+ * 30'un altı kırmızı.
+ *
+ * Parıltı yukarıdan aşağıya söner; renk "hangi seviye", parıltı "ne kadar
+ * iyi" bilgisini taşır.
  */
 const PUAN_BANTLARI: { esik: number; renk: PuanRengi }[] = [
   { esik: 89, renk: { ana: "#ffd166", parilti: 1, etiket: "Monarch" } },
@@ -190,11 +221,21 @@ const PUAN_BANTLARI: { esik: number; renk: PuanRengi }[] = [
       etiket: "M – S Arası",
     },
   },
-  { esik: 79, renk: { ana: "#b79bff", parilti: 0.55, etiket: "S-Rank" } },
-  { esik: 73, renk: { ana: "#5fb8ec", parilti: 0.35, etiket: "A-Rank" } },
-  { esik: 63, renk: { ana: "#3fbfa6", parilti: 0.18, etiket: "B-Rank" } },
+  { esik: 79, renk: { ana: "#b79bff", parilti: 0.6, etiket: "S-Rank" } },
+  {
+    esik: 73,
+    renk: {
+      ana: "#b79bff",
+      ikinci: "#5fb8ec",
+      yazi: "#8eaaf4",
+      parilti: 0.45,
+      etiket: "S – A Arası",
+    },
+  },
+  { esik: 67, renk: { ana: "#5fb8ec", parilti: 0.32, etiket: "A-Rank" } },
+  { esik: 60, renk: { ana: "#3fbfa6", parilti: 0.16, etiket: "B-Rank" } },
   // Buradan aşağısı sönük: başarısızlık, başarıdan daha çok bağırmasın.
-  { esik: 55, renk: { ana: "#77a458", yazi: "#93bf70", parilti: 0, etiket: "C-Rank" } },
+  { esik: 52, renk: { ana: "#77a458", yazi: "#93bf70", parilti: 0, etiket: "C-Rank" } },
   { esik: 30, renk: { ana: "#cf7628", yazi: "#e08b3d", parilti: 0, etiket: "Gelişmeli" } },
   { esik: 0, renk: { ana: "#b8474e", yazi: "#d05a61", parilti: 0, etiket: "Düşük" } },
 ];

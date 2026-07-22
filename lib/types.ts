@@ -9,7 +9,7 @@ export type TierId = "monarch" | "s" | "a" | "b" | "c" | "de";
  * olmayan efsaneler. Monarch ile BİREBİR aynı görünür (renk, boyut, rozet,
  * taban puan, oy ağırlığı); tek fark plakanın altındaki yazı.
  */
-export type SlotId = TierId | "monarch_s" | "monarch_respect";
+export type SlotId = TierId | "monarch_s" | "s_a" | "monarch_respect";
 
 /**
  * Puanlanan beceriler (0..100). WS taşıyıcılığı + yaşıyorken güven TEK
