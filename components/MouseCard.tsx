@@ -146,13 +146,12 @@ export default function MouseCard({ mouse }: { mouse: Mouse }) {
               çapraz karşısında durur, üstteki tik ile çakışmaz. */}
           {hotkeyDamgasi && (
             <span
-              className="absolute -bottom-1.5 -left-2.5 flex h-[26px] w-[26px] items-center justify-center rounded-md border-2 font-display text-[15px] font-bold leading-none"
+              className="absolute -bottom-1 -left-1.5 flex h-[18px] w-[18px] items-center justify-center rounded font-display text-[11px] font-bold leading-none"
               style={{
-                color: "#ff6b73",
-                borderColor: "#e5646b",
+                color: "#ff8a90",
+                border: "1.5px solid #e5646b",
                 background: "#2a1013",
                 transform: "rotate(-14deg)",
-                boxShadow: "0 0 12px rgba(229,100,107,0.55)",
               }}
               title={`Oy verenlerin %${Math.round(
                 agg?.hotkeyYesPct ?? 0

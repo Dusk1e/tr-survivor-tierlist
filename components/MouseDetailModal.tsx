@@ -377,7 +377,7 @@ function HotkeyPanel({
       <div className="flex items-center gap-4">
         {/* Eğik H damgası — karttakinin büyüğü */}
         <span
-          className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-xl border-2 font-display text-[30px] font-bold leading-none"
+          className="flex h-[40px] w-[40px] shrink-0 items-center justify-center rounded-lg border-2 font-display text-[22px] font-bold leading-none"
           style={{
             color: renk,
             borderColor: renk,

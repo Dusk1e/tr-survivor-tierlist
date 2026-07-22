@@ -370,12 +370,12 @@ input[type="range"].score-slider:disabled {
   transform: rotateX(7deg);
   transform-origin: center bottom;
   background:
-    linear-gradient(180deg, #16323b 0%, #0f2029 55%, #0a161d 100%);
+    linear-gradient(180deg, #b3222c 0%, #8c1620 55%, #5f0d15 100%);
   box-shadow:
     0 16px 34px rgba(0, 0, 0, 0.6),
-    0 1px 0 rgba(120, 230, 235, 0.30) inset,
+    0 1px 0 rgba(255, 190, 190, 0.32) inset,
     0 -4px 0 rgba(0, 0, 0, 0.5) inset,
-    0 0 30px rgba(73, 192, 194, 0.22);
+    0 0 30px rgba(179, 34, 44, 0.30);
 }
 
 /* Yuzeyin uzerinden gecen ince isik huzmesi — yayin bandi hissi. */
@@ -387,9 +387,9 @@ input[type="range"].score-slider:disabled {
   background: linear-gradient(
     100deg,
     transparent 0%,
-    rgba(120, 230, 235, 0.10) 45%,
-    rgba(255, 255, 255, 0.16) 50%,
-    rgba(120, 230, 235, 0.10) 55%,
+    rgba(255, 200, 200, 0.10) 45%,
+    rgba(255, 255, 255, 0.18) 50%,
+    rgba(255, 200, 200, 0.10) 55%,
     transparent 100%
   );
   background-size: 260% 100%;
@@ -423,13 +423,12 @@ input[type="range"].score-slider:disabled {
 
 /* Sol etiket — bandın üstünde duran kabartma plaka. */
 .sd-etiket {
-  background: linear-gradient(180deg, #7ff0f2 0%, #49c0c2 50%, #2b8e90 100%);
-  color: #04262a;
+  background: linear-gradient(180deg, #fff4f4 0%, #ffd9d9 50%, #f0adad 100%);
+  color: #6d0d15;
   box-shadow:
     0 3px 10px rgba(0, 0, 0, 0.5),
-    0 1px 0 rgba(255, 255, 255, 0.75) inset,
-    0 -2px 0 rgba(0, 0, 0, 0.22) inset,
-    0 0 16px rgba(73, 192, 194, 0.45);
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 -2px 0 rgba(0, 0, 0, 0.2) inset;
 }
 @keyframes sd-yanip-son {
   0%, 100% { opacity: 1; }

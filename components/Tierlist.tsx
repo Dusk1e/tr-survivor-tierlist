@@ -33,18 +33,23 @@ export default function Tierlist() {
 
   return (
     <div className="mx-auto w-full max-w-wide px-5 py-6 sm:px-8">
-      {/* Nasıl oy verilir + uyarılar — hepsi tek panelde */}
-      <UstBilgi />
-
-      {/* TFM Bülteni — panelden açılır, kapalıysa hiç çizilmez */}
+      {/* TFM Bülteni en üstte — haber bandı olduğu için tam genişlik */}
       <BreakingNews />
 
-      {/* Sayaçlar */}
-      <div className="mb-5 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-        <Stat label="Toplam Fare" value={ready ? String(mice.length) : "…"} />
-        <Stat label="Onaylı Oy" value={ready ? String(totalApproved) : "…"} />
-        <Stat label="Bölge" value="Türkiye" />
-        <Stat label="Mod" value="Survivor" />
+      {/*
+        Giriş bloğu: bilgi paneli ve sayaçlar AYNI genişlikte, ortalanmış
+        tek bir sütun. Farklı genişlikte olduklarında sayfa dağınık
+        görünüyordu; merdiven tam genişlik kalıyor, bu blok ortada duruyor.
+      */}
+      <div className="mx-auto mb-6 w-full max-w-3xl">
+        <UstBilgi />
+
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <Stat label="Toplam Fare" value={ready ? String(mice.length) : "…"} />
+          <Stat label="Onaylı Oy" value={ready ? String(totalApproved) : "…"} />
+          <Stat label="Bölge" value="Türkiye" />
+          <Stat label="Mod" value="Survivor" />
+        </div>
       </div>
 
       {/* Ladder */}
@@ -88,41 +93,44 @@ function UstBilgi() {
   ];
 
   return (
-    <div className="mb-5 rounded-2xl border border-white/8 bg-white/[0.025] px-4 py-4 sm:px-6">
-      {/* Adımlar — tek renk, parıltısız */}
-      <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-2">
-        {adimlar.map((baslik, i) => (
-          <div key={baslik} className="flex items-center gap-2">
-            <span className="flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full bg-teal/80 font-display text-[11px] font-bold text-abyss">
-              {i + 1}
-            </span>
-            <span className="whitespace-nowrap font-system text-sm font-bold text-choco/90">
-              {baslik}
-            </span>
-            {i < adimlar.length - 1 && (
-              <span className="mx-1 hidden text-choco/20 sm:inline">→</span>
-            )}
-          </div>
-        ))}
+    // Genişliği dışarıdaki giriş bloğu belirler; burada sadece kutu var.
+    <div className="mb-2.5">
+      <div className="rounded-xl border border-white/8 bg-white/[0.03] px-5 py-3.5">
+        {/* Adımlar — tek renk, parıltısız */}
+        <div className="flex flex-wrap items-center justify-center gap-x-1.5 gap-y-1.5">
+          {adimlar.map((baslik, i) => (
+            <div key={baslik} className="flex items-center gap-2">
+              <span className="flex h-[20px] w-[20px] shrink-0 items-center justify-center rounded-full bg-teal/80 font-display text-[10px] font-bold text-abyss">
+                {i + 1}
+              </span>
+              <span className="whitespace-nowrap font-system text-[13px] font-bold text-choco/90">
+                {baslik}
+              </span>
+              {i < adimlar.length - 1 && (
+                <span className="mx-1.5 hidden text-choco/20 sm:inline">→</span>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <div className="hairline my-2.5" />
+
+        {/* Notlar — sönük */}
+        <p className="text-center font-system text-[11px] font-medium leading-relaxed text-choco/40">
+          Şifreni yetkililerden alabilirsin
+          <Ayrac />
+          Oynayışını bilmediğin fareleri puanlama
+          <Ayrac />
+          Puanlar yetkili onayından sonra işlenir
+        </p>
+
+        {/* Uyarı — tek renk (sarı) */}
+        <p className="mt-1 text-center font-system text-[11px] font-semibold leading-relaxed text-cheese-deep">
+          Sıralama değişkendir, zamana göre genel bir değerlendirmedir
+          <Ayrac />
+          Puanlar sadece oyuncunun istatistiğini belirler
+        </p>
       </div>
-
-      {/* Notlar — tek satır, sönük */}
-      <p className="mx-auto mt-2.5 max-w-3xl text-center font-system text-[11px] font-medium leading-relaxed text-choco/40">
-        Şifreni yetkililerden alabilirsin
-        <Ayrac />
-        Oynayışını bilmediğin fareleri puanlama
-        <Ayrac />
-        Puanlar yetkili onayından sonra ortalamaya işlenir
-      </p>
-
-      <div className="hairline my-3" />
-
-      {/* Uyarı — tek renk (sarı) */}
-      <p className="text-center font-system text-xs font-semibold text-cheese-deep">
-        Tierlist sıralaması değişkendir, zamana göre genel bir değerlendirmedir
-        <Ayrac />
-        Puanlar sadece oyuncunun istatistiğini belirler
-      </p>
     </div>
   );
 }

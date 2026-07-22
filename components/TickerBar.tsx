@@ -73,11 +73,11 @@ export default function TickerBar({
   );
 
   return (
-    <div className="sd-yuzey flex items-stretch overflow-hidden rounded-xl border border-teal/25">
+    <div className="sd-yuzey flex items-stretch overflow-hidden rounded-xl border border-red-300/25">
       {/* Sol plaka */}
       <div className="flex shrink-0 items-center py-2 pl-2.5 pr-3 sm:pl-3">
         <span className="sd-etiket flex items-center gap-1.5 rounded-lg px-2.5 py-1 font-display text-[11px] font-bold uppercase tracking-[0.14em] sm:text-xs">
-          <span className="sd-nokta h-2 w-2 rounded-full bg-teal-950" />
+          <span className="sd-nokta h-2 w-2 rounded-full bg-red-700" />
           TFM Bülteni
         </span>
       </div>
