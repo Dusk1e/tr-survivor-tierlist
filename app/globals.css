@@ -355,3 +355,67 @@ input[type="range"].score-slider:disabled {
 @media (prefers-reduced-motion: reduce) {
   .heart-beat { animation: none; }
 }
+
+/* ===================== Son Dakika bandı (3B kayan haber) ================= */
+@keyframes sd-kay {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(-50%, 0, 0); }
+}
+
+/* Bandın 3B derinliği: hafif yatık yüzey + kabartma kenarlar. */
+.sd-sahne { perspective: 900px; }
+
+.sd-yuzey {
+  transform: rotateX(7deg);
+  transform-origin: center bottom;
+  background: linear-gradient(180deg, #b3222c 0%, #8c1620 55%, #5f0d15 100%);
+  box-shadow:
+    0 14px 28px rgba(0, 0, 0, 0.55),
+    0 2px 0 rgba(255, 255, 255, 0.18) inset,
+    0 -4px 0 rgba(0, 0, 0, 0.45) inset,
+    0 0 26px rgba(179, 34, 44, 0.35);
+}
+
+/* Kayan şerit — içerik iki kez basılır, -%50 kayınca dikişsiz döner. */
+.sd-kay {
+  display: inline-flex;
+  white-space: nowrap;
+  animation-name: sd-kay;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: transform;
+}
+.sd-sahne:hover .sd-kay { animation-play-state: paused; }
+
+.sd-metin {
+  text-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.55),
+    0 2px 3px rgba(0, 0, 0, 0.45);
+}
+
+/* Sol etiket — bandın üstünde duran kabartma plaka. */
+.sd-etiket {
+  background: linear-gradient(180deg, #fff2f2 0%, #ffd7d7 45%, #f0abab 100%);
+  color: #6d0d15;
+  box-shadow:
+    0 3px 8px rgba(0, 0, 0, 0.45),
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 -2px 0 rgba(0, 0, 0, 0.18) inset;
+}
+@keyframes sd-yanip-son {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.55; }
+}
+.sd-nokta { animation: sd-yanip-son 1.4s ease-in-out infinite; }
+
+/* Kenarlarda yumuşak sönme — yazı bandın içinden çıkıyormuş gibi dursun. */
+.sd-maske {
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 44px, #000 calc(100% - 44px), transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 44px, #000 calc(100% - 44px), transparent 100%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sd-kay { animation: none; }
+  .sd-nokta { animation: none; }
+  .sd-yuzey { transform: none; }
+}

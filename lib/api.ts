@@ -12,6 +12,8 @@ import {
   PermId,
   Scores,
   Session,
+  TickerConfig,
+  TICKER_VARSAYILAN,
   Vote,
   VoteAgg,
   VoteStatus,
@@ -493,6 +495,48 @@ export async function purgeAllVotes(): Promise<number> {
   lsSet(LS_VOTES, []);
   pingDataChanged();
   return n;
+}
+
+/* ============================= son dakika =============================== */
+
+const LS_TICKER = "tst_ticker_v1";
+
+export async function getTicker(): Promise<TickerConfig> {
+  if (isCloud) {
+    try {
+      const res = await getFresh("/api/ticker");
+      if (!res.ok) return TICKER_VARSAYILAN;
+      return (await res.json()) as TickerConfig;
+    } catch {
+      // Bant okunamazsa site çalışmaya devam etsin, bant görünmez olur.
+      return TICKER_VARSAYILAN;
+    }
+  }
+  const t = lsGet<TickerConfig>(LS_TICKER, TICKER_VARSAYILAN);
+  return t && typeof t === "object" ? t : TICKER_VARSAYILAN;
+}
+
+export async function saveTicker(cfg: TickerConfig): Promise<TickerConfig> {
+  if (isCloud) {
+    const res = await fetch("/api/ticker", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(cfg),
+      cache: "no-store",
+    });
+    if (res.status === 401)
+      throw new Error("Oturumun sona ermiş. Sayfayı yenileyip tekrar gir.");
+    if (!res.ok)
+      throw new Error(
+        (await safeMsg(res)) || `Kaydedilemedi (HTTP ${res.status})`
+      );
+    const kayitli = (await res.json()) as TickerConfig;
+    pingDataChanged();
+    return kayitli;
+  }
+  lsSet(LS_TICKER, cfg);
+  pingDataChanged();
+  return cfg;
 }
 
 /* ============================== aşk köşesi ============================== */

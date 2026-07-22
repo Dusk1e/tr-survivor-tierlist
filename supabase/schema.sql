@@ -74,3 +74,19 @@ alter table public.authorities enable row level security;
 -- =====================================================================
 alter table public.mice
   add column if not exists partner_id uuid references public.mice(id) on delete set null;
+
+-- Site ayarlari (son dakika bandi vb.) -----------------------------------
+create table if not exists public.settings (
+  key   text primary key,
+  value text not null default ''
+);
+alter table public.settings enable row level security;
+
+-- =====================================================================
+--  MEVCUT KURULUMA EKLEME (Son Dakika bandi)
+-- =====================================================================
+create table if not exists public.settings (
+  key   text primary key,
+  value text not null default ''
+);
+alter table public.settings enable row level security;

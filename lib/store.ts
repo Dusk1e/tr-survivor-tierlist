@@ -256,6 +256,38 @@ export async function decideVote(
   if (error) throw new Error(error.message);
 }
 
+/* =============================== ayarlar ================================ */
+
+const SETTINGS_TABLE = "settings";
+
+/** settings tablosu yoksa ne yapılacağını açıkça söyleyen hata. */
+function ayarHatasi(msg: string): Error {
+  if (/settings/i.test(msg) && /(exist|relation|schema|bulunam)/i.test(msg))
+    return new Error(
+      "Son Dakika bandı için veritabanı güncellemesi gerekiyor. Supabase → SQL Editor: " +
+        "create table if not exists public.settings (key text primary key, value text not null default ''); " +
+        "alter table public.settings enable row level security;"
+    );
+  return new Error(msg);
+}
+
+export async function getSetting(key: string): Promise<string | null> {
+  const { data, error } = await db()
+    .from(SETTINGS_TABLE)
+    .select("value")
+    .eq("key", key)
+    .maybeSingle();
+  if (error) throw ayarHatasi(error.message);
+  return (data as { value: string } | null)?.value ?? null;
+}
+
+export async function setSetting(key: string, value: string): Promise<void> {
+  const { error } = await db()
+    .from(SETTINGS_TABLE)
+    .upsert([{ key, value }], { onConflict: "key" });
+  if (error) throw ayarHatasi(error.message);
+}
+
 /* ============================== aşk köşesi ============================== */
 
 /** Eşi varsa bağı iki taraftan da koparır. */

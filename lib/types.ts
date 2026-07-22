@@ -42,6 +42,20 @@ export interface Mouse {
 
 export type MouseInput = Omit<Mouse, "id" | "created_at">;
 
+/** Sitenin en üstündeki "Son Dakika" kayan haber bandı. */
+export interface TickerConfig {
+  aktif: boolean;
+  metin: string;
+  /** Yazının bir turu kaç saniyede tamamlansın (büyük = yavaş). */
+  hiz: number;
+}
+
+export const TICKER_VARSAYILAN: TickerConfig = {
+  aktif: false,
+  metin: "",
+  hiz: 40,
+};
+
 export type VoteStatus = "pending" | "approved" | "rejected";
 
 export interface Vote {

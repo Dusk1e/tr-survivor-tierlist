@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { SLOTS } from "@/lib/tiers";
 import { Mouse } from "@/lib/types";
 import TierRow from "./TierRow";
+import BreakingNews from "./BreakingNews";
 import { useSession } from "./SessionProvider";
 
 /**
@@ -34,6 +35,9 @@ export default function Tierlist() {
     <div className="mx-auto w-full max-w-wide px-5 py-6 sm:px-8">
       {/* Nasıl oy verilir — en üstte */}
       <NasilOyVerilir />
+
+      {/* Son Dakika bandı — panelden açılır, kapalıysa hiç çizilmez */}
+      <BreakingNews />
 
       {/* disclaimer */}
       <div
