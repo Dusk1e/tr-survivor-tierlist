@@ -8,6 +8,7 @@ import { MyVote } from "@/lib/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 /* GET → public aggregates (approved-only, weighted) + caller's own votes. */
 export async function GET(req: NextRequest) {

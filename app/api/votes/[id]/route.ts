@@ -16,6 +16,7 @@ import {
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 /* PATCH {action: approve|reject} — admin or staff with vote_approve. */
 export async function PATCH(

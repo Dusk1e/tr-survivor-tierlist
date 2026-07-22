@@ -6,6 +6,7 @@ import { TickerConfig, TICKER_VARSAYILAN } from "@/lib/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 const ANAHTAR = "ticker";
 

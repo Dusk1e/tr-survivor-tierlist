@@ -5,6 +5,7 @@ import { addAuthority, listAuthorities, removeAuthority } from "@/lib/store";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 function yetkiliMi(req: NextRequest): boolean {
   return verifySessionToken(req.cookies.get(ADMIN_COOKIE)?.value);

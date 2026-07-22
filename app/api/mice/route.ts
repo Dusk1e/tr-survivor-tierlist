@@ -13,6 +13,7 @@ import { sanitizePerms } from "@/lib/perms";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 function isAdmin(req: NextRequest): boolean {
   return verifySessionToken(req.cookies.get(ADMIN_COOKIE)?.value);

@@ -10,6 +10,7 @@ import { listVotes, mouseHasPerm, purgeVotes } from "@/lib/store";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 /* GET → full vote log. Admin, or staff with vote_log / vote_approve. */
 export async function GET(req: NextRequest) {

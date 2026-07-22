@@ -5,6 +5,7 @@ import { clearCouple, setCouple } from "@/lib/store";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 /** Aşk Köşesi eşleştirmesi — SADECE site yöneticisi. */
 function adminMi(req: NextRequest): boolean {

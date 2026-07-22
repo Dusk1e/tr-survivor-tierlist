@@ -4,6 +4,7 @@ import { ADMIN_COOKIE, createSessionToken, getAdminPassword } from "@/lib/auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 /**
  * Sertleştirilmiş admin girişi:

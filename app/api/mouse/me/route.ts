@@ -5,6 +5,7 @@ import { validMouse } from "@/lib/store";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 /**
  * Current mouse session. The token carries the epoch it was issued at;
