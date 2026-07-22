@@ -30,6 +30,7 @@ const LS_MICE = "tst_mice_v5";
 const LS_VOTES = "tst_votes_v7";
 const LS_SESSION = "tst_session_v3";
 const LS_AUTH = "tst_authorities_v2";
+const LS_OY_YEDEK = "tst_oy_yedegi_v1";
 
 const DEFAULT_AUTHORITIES = ["Alwesh", "Blacklean"];
 
@@ -494,10 +495,84 @@ export async function purgeAllVotes(): Promise<number> {
     const j = await res.json();
     return Number(j?.silinen ?? 0);
   }
-  const n = lsLoadVotes().length;
+  const mevcut = lsLoadVotes();
+  // Silinecek bir şey yoksa yedeğe dokunma (iki kez basınca yedek ezilmesin).
+  if (mevcut.length === 0) return 0;
+  // Silmeden ÖNCE yedekle ki tek tıkla geri alınabilsin.
+  lsSet(LS_OY_YEDEK, {
+    adet: mevcut.length,
+    zaman: new Date().toISOString(),
+    satirlar: mevcut,
+  });
   lsSet(LS_VOTES, []);
   pingDataChanged();
-  return n;
+  return mevcut.length;
+}
+
+/** Son sıfırlamanın geri alınabilir yedeği var mı? */
+export async function oyYedegiBilgisi(): Promise<{
+  adet: number;
+  zaman: string;
+} | null> {
+  if (isCloud) {
+    try {
+      const res = await getFresh("/api/admin/votes?yedek=1");
+      if (!res.ok) return null;
+      const j = await res.json();
+      return j?.yedek ?? null;
+    } catch {
+      return null;
+    }
+  }
+  const y = lsGet<{ adet: number; zaman: string } | null>(LS_OY_YEDEK, null);
+  return y && typeof y.adet === "number" ? y : null;
+}
+
+/** Son sıfırlamayı geri alır. */
+export async function restoreVotes(): Promise<{
+  geriYuklenen: number;
+  atlanan: number;
+}> {
+  if (isCloud) {
+    const res = await fetch("/api/admin/votes", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "geriAl" }),
+      cache: "no-store",
+    });
+    if (res.status === 401)
+      throw new Error("Oturumun sona ermiş. Sayfayı yenileyip tekrar gir.");
+    if (!res.ok)
+      throw new Error((await safeMsg(res)) || "Geri alınamadı");
+    const j = await res.json();
+    pingDataChanged();
+    return { geriYuklenen: j?.geriYuklenen ?? 0, atlanan: j?.atlanan ?? 0 };
+  }
+
+  const yedek = lsGet<{ adet: number; zaman: string; satirlar: Vote[] } | null>(
+    LS_OY_YEDEK,
+    null
+  );
+  if (!yedek || !Array.isArray(yedek.satirlar) || yedek.satirlar.length === 0)
+    throw new Error("Geri alınacak bir yedek yok.");
+
+  const mevcut = lsLoadVotes();
+  const dolu = new Set(mevcut.map((v) => `${v.voter_id}|${v.target_id}`));
+  const fareler = new Set(lsLoadMice().map((m) => m.id));
+  const yuklenecek = yedek.satirlar.filter(
+    (v) =>
+      fareler.has(v.voter_id) &&
+      fareler.has(v.target_id) &&
+      !dolu.has(`${v.voter_id}|${v.target_id}`)
+  );
+
+  lsSet(LS_VOTES, [...mevcut, ...yuklenecek]);
+  lsSet(LS_OY_YEDEK, null);
+  pingDataChanged();
+  return {
+    geriYuklenen: yuklenecek.length,
+    atlanan: yedek.satirlar.length - yuklenecek.length,
+  };
 }
 
 /* ============================= son dakika =============================== */

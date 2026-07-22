@@ -2,7 +2,12 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { getVoteLog, purgeAllVotes } from "@/lib/api";
+import {
+  getVoteLog,
+  oyYedegiBilgisi,
+  purgeAllVotes,
+  restoreVotes,
+} from "@/lib/api";
 import RosterManager from "./RosterManager";
 import VoteApprovals from "./VoteApprovals";
 import VoteLog from "./VoteLog";
@@ -200,6 +205,21 @@ function PurgeVotesBar({
   const [adim, setAdim] = useState(0); // 0 = kapalı, 1-2 = uyarı, 3 = yazarak onay
   const [kelime, setKelime] = useState("");
   const [busy, setBusy] = useState(false);
+  /** Son sıfırlamanın geri alınabilir yedeği (varsa). */
+  const [yedek, setYedek] = useState<{ adet: number; zaman: string } | null>(
+    null
+  );
+
+  const yedegiOku = useCallback(() => {
+    oyYedegiBilgisi()
+      .then(setYedek)
+      .catch(() => setYedek(null));
+  }, []);
+
+  // Yedek başka bir oturumda alınmış olabilir; açılışta sunucudan sorulur.
+  useEffect(() => {
+    yedegiOku();
+  }, [yedegiOku]);
 
   function iptal() {
     setAdim(0);
@@ -210,8 +230,9 @@ function PurgeVotesBar({
     setBusy(true);
     try {
       const n = await purgeAllVotes();
-      onToast(`${n} oy silindi. Puanlar tier başlangıç değerlerine döndü.`);
+      onToast(`${n} oy silindi. Yanlışlıkla olduysa hemen geri alabilirsin.`);
       iptal();
+      yedegiOku();
       onDone();
     } catch (e: any) {
       onToast(e?.message ?? "Silinemedi", "err");
@@ -219,6 +240,38 @@ function PurgeVotesBar({
       setBusy(false);
     }
   }
+
+  async function geriAl() {
+    setBusy(true);
+    try {
+      const r = await restoreVotes();
+      onToast(
+        r.atlanan > 0
+          ? `${r.geriYuklenen} oy geri yüklendi. ${r.atlanan} tanesi atlandı (fare silinmiş ya da yerine yeni oy verilmiş).`
+          : `${r.geriYuklenen} oy geri yüklendi.`
+      );
+      setYedek(null);
+      onDone();
+    } catch (e: any) {
+      onToast(e?.message ?? "Geri alınamadı", "err");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const yedekZamani = (() => {
+    if (!yedek?.zaman) return "";
+    try {
+      return new Date(yedek.zaman).toLocaleString("tr-TR", {
+        day: "2-digit",
+        month: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } catch {
+      return "";
+    }
+  })();
 
   return (
     <div className="glass mb-4 rounded-xl px-4 py-3">
@@ -228,7 +281,8 @@ function PurgeVotesBar({
             Tüm oyları sil
           </div>
           <div className="text-xs font-medium text-choco/45">
-            Bekleyen ve onaylanmış bütün puanlamaları kaldırır. Geri alınamaz.
+            Bekleyen ve onaylanmış bütün puanlamaları kaldırır. Silmeden önce
+            yedeklenir, yanlışlıkla olursa tek tıkla geri alınır.
           </div>
         </div>
 
@@ -247,6 +301,36 @@ function PurgeVotesBar({
           </button>
         )}
       </div>
+
+      {/* Geri alma — yedek varken görünür. Sıfırlamayı biri yanlışlıkla ya da
+          kasten yaptıysa tek tıkla eski hâline döner. */}
+      {yedek && yedek.adet > 0 && adim === 0 && (
+        <div
+          className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-lg border px-3 py-2.5"
+          style={{
+            borderColor: "rgba(90,208,106,0.4)",
+            background: "rgba(90,208,106,0.08)",
+          }}
+        >
+          <div>
+            <div className="font-system text-sm font-bold text-green-300">
+              Geri alınabilir sıfırlama var
+            </div>
+            <div className="text-xs font-medium text-choco/50">
+              {yedek.adet} oy yedekte
+              {yedekZamani ? ` · ${yedekZamani}` : ""} — geri alınca eski
+              puanlar aynen döner.
+            </div>
+          </div>
+          <button
+            onClick={geriAl}
+            disabled={busy}
+            className="btn-primary shrink-0 px-4 py-1.5 text-xs disabled:opacity-50"
+          >
+            {busy ? "Geri alınıyor…" : "Sıfırlamayı Geri Al"}
+          </button>
+        </div>
+      )}
 
       {adim > 0 && (
         <div className="mt-3 rounded-lg border border-red-500/40 bg-red-500/10 p-3">
@@ -270,8 +354,10 @@ function PurgeVotesBar({
           {adim === 2 && (
             <div className="flex flex-wrap items-center justify-between gap-3">
               <p className="text-sm font-semibold text-red-200">
-                Uyarı 2/3 — Bu işlem <b>geri alınamaz</b>. Herkesin puanı
-                tier başlangıç değerine döner, oy geçmişi tamamen kaybolur.
+                Uyarı 2/3 — Herkesin puanı tier başlangıç değerine döner, oy
+                geçmişi sıfırlanır. Yedek alınır ve <b>tek seferliğine</b>{" "}
+                buradan geri alınabilir — ikinci bir sıfırlama eski yedeğin
+                üstüne yazar.
               </p>
               <button
                 onClick={() => setAdim(3)}

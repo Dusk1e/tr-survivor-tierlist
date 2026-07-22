@@ -473,17 +473,149 @@ export async function getVote(voteId: string): Promise<Vote | null> {
 }
 
 /** TÜM oyları siler (admin: sıfırlama). */
+/* --------------------- oyları sıfırlama ve geri alma -------------------- */
+
+/** Son sıfırlamanın yedeği bu anahtarda saklanır (settings tablosu). */
+const OY_YEDEK_ANAHTARI = "oy_yedegi";
+
+/** Yedek çok şişmesin — bunun üstü zaten tek tıkla geri alınacak bir şey değil. */
+const YEDEK_UST_SINIR = 5000;
+
+interface OyYedegi {
+  zaman: string;
+  satirlar: Record<string, unknown>[];
+}
+
+/**
+ * TÜM oyları siler — ama ÖNCE yedekler. Yedek alınamazsa silme yapılmaz;
+ * geri dönüşü olmayan bir işlemi yedeksiz yapmak doğru olmaz.
+ * Yedek yalnızca son sıfırlamayı tutar.
+ */
 export async function purgeVotes(): Promise<number> {
   const c = db();
-  const { count } = await c
-    .from(VOTES_TABLE)
-    .select("id", { count: "exact", head: true });
-  const { error } = await c
-    .from(VOTES_TABLE)
-    .delete()
-    .not("id", "is", null);
+
+  const { data, error: okuHata } = await c.from(VOTES_TABLE).select("*");
+  if (okuHata) throw new Error(`Oylar okunamadı: ${okuHata.message}`);
+  const satirlar = (data ?? []) as Record<string, unknown>[];
+
+  // Silinecek bir şey yoksa YEDEĞE DOKUNMA. Aksi hâlde biri sıfırlama
+  // düğmesine iki kez basınca ikinci basış yedeği boş listeyle ezer ve
+  // ilk sıfırlama geri alınamaz hâle gelirdi.
+  if (satirlar.length === 0) return 0;
+
+  if (satirlar.length > YEDEK_UST_SINIR)
+    throw new Error(
+      `Çok fazla oy var (${satirlar.length}). Güvenli yedek alınamadığı için sıfırlama durduruldu.`
+    );
+
+  const yedek: OyYedegi = { zaman: new Date().toISOString(), satirlar };
+  try {
+    await setSetting(OY_YEDEK_ANAHTARI, JSON.stringify(yedek));
+  } catch (e: any) {
+    throw new Error(
+      `Yedek alınamadığı için sıfırlama yapılmadı: ${e?.message ?? "bilinmeyen hata"}`
+    );
+  }
+
+  const { error } = await c.from(VOTES_TABLE).delete().not("id", "is", null);
   if (error) throw new Error(error.message);
-  return count ?? 0;
+  return satirlar.length;
+}
+
+/** Yedek var mı, kaç oy ve ne zaman alınmış? */
+export async function oyYedegiBilgisi(): Promise<{
+  adet: number;
+  zaman: string;
+} | null> {
+  let ham: string | null = null;
+  try {
+    ham = await getSetting(OY_YEDEK_ANAHTARI);
+  } catch {
+    return null; // settings tablosu yoksa geri alma da yok
+  }
+  if (!ham) return null;
+  try {
+    const y = JSON.parse(ham) as OyYedegi;
+    if (!Array.isArray(y?.satirlar)) return null;
+    return { adet: y.satirlar.length, zaman: y.zaman ?? "" };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Son sıfırlamayı geri alır. Araya girmiş durumlara dayanıklıdır:
+ *  - Silinmiş fareye ait oylar atlanır (yabancı anahtar hatası vermesin)
+ *  - Sıfırlamadan sonra yeniden verilmiş oylar korunur, üzerine yazılmaz
+ *    (voter_id + target_id tekil kısıtı)
+ * Başarılı olursa yedek temizlenir; iki kez geri alma olmaz.
+ */
+export async function restoreVotes(): Promise<{
+  geriYuklenen: number;
+  atlanan: number;
+}> {
+  const c = db();
+
+  const ham = await getSetting(OY_YEDEK_ANAHTARI);
+  if (!ham) throw new Error("Geri alınacak bir yedek yok.");
+
+  let yedek: OyYedegi;
+  try {
+    yedek = JSON.parse(ham) as OyYedegi;
+  } catch {
+    throw new Error("Yedek okunamadı (bozuk kayıt).");
+  }
+  const satirlar = Array.isArray(yedek?.satirlar) ? yedek.satirlar : [];
+  if (satirlar.length === 0) throw new Error("Yedek boş.");
+
+  // Hâlâ var olan fareler
+  const { data: fareler, error: fareHata } = await c
+    .from(MICE_TABLE)
+    .select("id");
+  if (fareHata) throw new Error(`Fareler okunamadı: ${fareHata.message}`);
+  const mevcutFare = new Set((fareler ?? []).map((r: any) => r.id));
+
+  // Sıfırlamadan sonra verilmiş oylar
+  const { data: simdiki, error: oyHata } = await c
+    .from(VOTES_TABLE)
+    .select("voter_id,target_id");
+  if (oyHata) throw new Error(`Mevcut oylar okunamadı: ${oyHata.message}`);
+  const dolu = new Set(
+    (simdiki ?? []).map((r: any) => `${r.voter_id}|${r.target_id}`)
+  );
+
+  const yuklenecek = satirlar.filter((r) => {
+    const v = r.voter_id as string;
+    const t = r.target_id as string;
+    if (!mevcutFare.has(v) || !mevcutFare.has(t)) return false;
+    return !dolu.has(`${v}|${t}`);
+  });
+  const atlanan = satirlar.length - yuklenecek.length;
+
+  // Tek seferde binlerce satır göndermek istek boyutunu şişirir; parçala.
+  let yuklenen = 0;
+  for (let i = 0; i < yuklenecek.length; i += 400) {
+    const parca = yuklenecek.slice(i, i + 400);
+    const { error } = await c.from(VOTES_TABLE).insert(parca);
+    if (error)
+      throw new Error(
+        yuklenen > 0
+          ? `${yuklenen} oy geri yüklendi, gerisi yüklenemedi: ${error.message}. Yedek duruyor, tekrar deneyebilirsin.`
+          : `Geri yüklenemedi: ${error.message}`
+      );
+    yuklenen += parca.length;
+  }
+
+  // Tek kullanımlık: geri alındıktan sonra yedek silinir. Yedeği temizlerken
+  // bir aksilik olursa geri yükleme yine de başarılı sayılır (oylar yerinde);
+  // ikinci bir geri alma denemesi zaten hepsini "atlanan" olarak görür.
+  try {
+    await setSetting(OY_YEDEK_ANAHTARI, "");
+  } catch {
+    /* yedek temizlenemedi — sorun değil */
+  }
+
+  return { geriYuklenen: yuklenen, atlanan };
 }
 
 /* ========================= permission helpers =========================== */
