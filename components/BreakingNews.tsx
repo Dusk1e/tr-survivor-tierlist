@@ -3,11 +3,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { DATA_EVENT, getTicker } from "@/lib/api";
 import { TickerConfig } from "@/lib/types";
+import TickerBar from "./TickerBar";
 
 /**
- * "TFM Bülteni" haber bandı — 3B yatık koyu yüzey üzerinde yavaşça kayan
- * yazı. İçerik panelden yönetilir; kapalıysa ya da yazı boşsa hiç çizilmez.
- * Fare üzerine gelince durmaz — akış hiç kesilmez.
+ * "TFM Bülteni" haber bandı. İçerik panelden yönetilir; kapalıysa ya da
+ * hiç not yoksa çizilmez. Fare üzerine gelince akış durmaz.
  */
 export default function BreakingNews() {
   const [cfg, setCfg] = useState<TickerConfig | null>(null);
@@ -45,51 +45,9 @@ export default function BreakingNews() {
   const notlar = (cfg?.notlar ?? []).map((n) => n.trim()).filter(Boolean);
   if (!cfg?.aktif || notlar.length === 0) return null;
 
-  // Süre içerik uzunluğuna göre hesaplanır: not eklendikçe bant uzar ama
-  // kayma hızı sabit kalır. Yoksa çok not girilince yazı uçup gidiyordu.
-  const toplamUzunluk = notlar.join("").length;
-  const sure = Math.max(12, Math.round((toplamUzunluk / 100) * cfg.hiz));
-
   return (
     <div className="sd-sahne mb-6" role="status" aria-live="polite">
-      <div className="sd-yuzey flex items-stretch overflow-hidden rounded-xl border border-teal/25">
-        {/* Sol plaka */}
-        <div className="flex shrink-0 items-center py-2 pl-2.5 pr-3 sm:pl-3">
-          <span className="sd-etiket flex items-center gap-1.5 rounded-lg px-2.5 py-1 font-display text-[11px] font-bold uppercase tracking-[0.14em] sm:text-xs">
-            <span className="sd-nokta h-2 w-2 rounded-full bg-teal-950" />
-            TFM Bülteni
-          </span>
-        </div>
-
-        {/* Kayan yazı */}
-        <div className="sd-maske relative flex-1 overflow-hidden">
-          <div className="sd-kay py-2.5" style={{ animationDuration: `${sure}s` }}>
-            <Parca notlar={notlar} />
-            <Parca notlar={notlar} />
-          </div>
-        </div>
-      </div>
+      <TickerBar notlar={notlar} hiz={cfg.hiz} />
     </div>
-  );
-}
-
-/**
- * Şeridin bir kopyası — bütün notlar sırayla, aralarında ayraçla dizilir.
- * İki kopya yan yana durur; şerit kendi genişliğinin yarısı kadar
- * kaydığında ikinci kopya birincinin yerine oturur, yani son nottan sonra
- * ilk nota dönüş dikişsiz olur.
- */
-function Parca({ notlar }: { notlar: string[] }) {
-  return (
-    <span className="sd-metin flex shrink-0 items-center font-system text-sm font-bold text-white sm:text-[15px]">
-      {notlar.map((not, i) => (
-        <span key={i} className="flex shrink-0 items-center">
-          <span className="px-6">{not}</span>
-          <span aria-hidden className="text-white/40">
-            ◆
-          </span>
-        </span>
-      ))}
-    </span>
   );
 }

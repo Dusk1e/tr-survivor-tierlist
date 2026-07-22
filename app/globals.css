@@ -402,7 +402,11 @@ input[type="range"].score-slider:disabled {
 
 /* Kayan şerit — içerik iki kez basılır, -%50 kayınca dikişsiz döner. */
 .sd-kay {
-  display: inline-flex;
+  /* inline-flex idi: satir-ici kutu oldugu icin ust ogenin text-align'ina
+     tabiydi ve serit ortadan basliyormus gibi gorunuyordu. flex + max-content
+     ile her zaman soldan baslar ve icerik kadar genis olur. */
+  display: flex;
+  width: max-content;
   white-space: nowrap;
   animation-name: sd-kay;
   animation-timing-function: linear;

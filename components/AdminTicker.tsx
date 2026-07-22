@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { getTicker, saveTicker } from "@/lib/api";
 import { TickerConfig, TICKER_VARSAYILAN } from "@/lib/types";
+import TickerBar from "./TickerBar";
 
 /**
  * TFM Bülteni bandı yönetimi. Notlar tek tek eklenir, bantta sırayla geçer
@@ -88,8 +89,7 @@ export default function AdminTicker({
   }
 
   const notlar = cfg.notlar.filter((n) => n.trim());
-  const toplamUzunluk = notlar.join("").length;
-  const sure = Math.max(12, Math.round((toplamUzunluk / 100) * cfg.hiz));
+  // Süre artık TickerBar içinde, ekrana sığan tekrar sayısına göre hesaplanıyor.
 
   return (
     <div className="glass-strong sys-window p-5 sm:p-6">
@@ -151,7 +151,7 @@ export default function AdminTicker({
           Bandaki Notlar
         </span>
         <span className="font-system text-[11px] font-medium text-choco/35 tabular-nums">
-          {notlar.length} / 20 · bir tur {sure} sn
+          {notlar.length} / 20 not
         </span>
       </div>
 
@@ -233,31 +233,8 @@ export default function AdminTicker({
       <div className="label">Önizleme</div>
       {notlar.length > 0 ? (
         <div className="sd-sahne mt-1">
-          <div className="sd-yuzey flex items-stretch overflow-hidden rounded-xl border border-teal/25">
-            <div className="flex shrink-0 items-center py-2 pl-2.5 pr-3">
-              <span className="sd-etiket flex items-center gap-1.5 rounded-lg px-2.5 py-1 font-display text-[11px] font-bold uppercase tracking-[0.14em]">
-                <span className="sd-nokta h-2 w-2 rounded-full bg-teal-950" />
-                TFM Bülteni
-              </span>
-            </div>
-            <div className="sd-maske relative flex-1 overflow-hidden">
-              <div className="sd-kay py-2.5" style={{ animationDuration: `${sure}s` }}>
-                {[0, 1].map((k) => (
-                  <span
-                    key={k}
-                    className="sd-metin flex shrink-0 items-center font-system text-sm font-bold text-white"
-                  >
-                    {notlar.map((not, i) => (
-                      <span key={i} className="flex shrink-0 items-center">
-                        <span className="px-6">{not}</span>
-                        <span className="text-white/40">◆</span>
-                      </span>
-                    ))}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
+          {/* Sitedeki bandın TA KENDİSİ — ikisi asla ayrışmasın. */}
+          <TickerBar notlar={notlar} hiz={cfg.hiz} />
         </div>
       ) : (
         <p className="mt-1 text-sm font-medium italic text-choco/35">
