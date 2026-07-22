@@ -95,10 +95,23 @@ function between(upper: Omit<TierConfig, "kind">, lower: Omit<TierConfig, "kind"
  * Merdiven, yukarıdan aşağıya. Tek ara bölge MONARCH ile S-RANK arasındadır;
  * diğer tier'lar arasında ara bölge yoktur.
  */
+/**
+ * Monarch bandının sağ yarısı. Monarch'ın BİREBİR kopyası — renk, rozet,
+ * taban puan, parıltı, hepsi aynı. Tek fark plakanın altındaki yazı.
+ */
+const MONARCH_RESPECT_SUBTITLE = "Uzun süredir aktif olmayan efsaneler";
+
 export const SLOTS: TierConfig[] = MAIN.flatMap((t, i) => {
   const main: TierConfig = { ...t, kind: "main" };
+  if (t.id !== "monarch") return [main];
+
+  const respect: TierConfig = {
+    ...main,
+    id: "monarch_respect" as SlotId,
+    subtitle: MONARCH_RESPECT_SUBTITLE,
+  };
   const next = MAIN[i + 1];
-  return next && t.id === "monarch" ? [main, between(t, next)] : [main];
+  return next ? [main, respect, between(t, next)] : [main, respect];
 });
 
 export const SLOT_MAP: Record<string, TierConfig> = SLOTS.reduce(
@@ -121,6 +134,8 @@ export function tierOf(id: string): TierConfig {
  */
 export const SLOT_WEIGHT: Record<SlotId, number> = {
   monarch: 1.8,
+  // Saygı listesi — ağırlığı Monarch ile aynı, kırılmıyor.
+  monarch_respect: 1.8,
   monarch_s: 1.65,
   s: 1.5,
   a: 1.3,

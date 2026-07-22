@@ -1,9 +1,10 @@
 "use client";
 
 import { useMemo } from "react";
-import { SLOTS } from "@/lib/tiers";
+import { SLOTS, SLOT_MAP } from "@/lib/tiers";
 import { Mouse } from "@/lib/types";
 import TierRow from "./TierRow";
+import SplitTierRow from "./SplitTierRow";
 import BreakingNews from "./BreakingNews";
 import { useSession } from "./SessionProvider";
 
@@ -65,14 +66,34 @@ export default function Tierlist() {
                 style={{ borderColor: `${s.accent}22` }}
               />
             ))
-          : SLOTS.map((s, i) => (
-              <TierRow
-                key={s.id}
-                tier={s}
-                mice={grouped[s.id] ?? []}
-                index={i}
-              />
-            ))}
+          : SLOTS.map((s, i) => {
+              // monarch_respect kendi satırını almaz; Monarch'ın sağ yarısı
+              // olarak aynı bandın içinde çizilir.
+              if (s.id === "monarch_respect") return null;
+
+              if (s.id === "monarch") {
+                const sag = SLOT_MAP["monarch_respect"];
+                if (sag)
+                  return (
+                    <SplitTierRow
+                      key={s.id}
+                      sol={s}
+                      sag={sag}
+                      solMice={grouped[s.id] ?? []}
+                      sagMice={grouped["monarch_respect"] ?? []}
+                    />
+                  );
+              }
+
+              return (
+                <TierRow
+                  key={s.id}
+                  tier={s}
+                  mice={grouped[s.id] ?? []}
+                  index={i}
+                />
+              );
+            })}
       </div>
 
     </div>

@@ -4,7 +4,12 @@ export type TierId = "monarch" | "s" | "a" | "b" | "c" | "de";
  * A mouse's placement. Either a main tier or the single "between" slot
  * ("monarch_s" = MONARCH ile S-RANK arası).
  */
-export type SlotId = TierId | "monarch_s";
+/**
+ * "monarch_respect": Monarch bandının sağ yarısı — uzun süredir aktif
+ * olmayan efsaneler. Monarch ile BİREBİR aynı görünür (renk, boyut, rozet,
+ * taban puan, oy ağırlığı); tek fark plakanın altındaki yazı.
+ */
+export type SlotId = TierId | "monarch_s" | "monarch_respect";
 
 /**
  * Puanlanan beceriler (0..100). WS taşıyıcılığı + yaşıyorken güven TEK
