@@ -67,7 +67,7 @@ function Yarim({ tier, mice }: { tier: TierConfig; mice: Mouse[] }) {
       {/* Plaka — dar ekranda daralır ki kartlara yer kalsın. Yarımlar yine
           yan yana durur, hiçbir genişlikte alt alta inmez. */}
       <div
-        className="relative flex w-[104px] shrink-0 flex-col items-start justify-center gap-2 px-3 py-5 sm:w-[150px] sm:px-4"
+        className="relative flex w-[96px] shrink-0 flex-col items-start justify-center gap-2 px-3 py-4 sm:w-[132px] sm:px-3.5"
         style={{
           background: `linear-gradient(180deg, ${tier.accent}${
             glow >= 2.4 ? "1f" : "12"
@@ -75,7 +75,7 @@ function Yarim({ tier, mice }: { tier: TierConfig; mice: Mouse[] }) {
           borderRight: "1px solid rgba(255,255,255,0.06)",
         }}
       >
-        <TierSigil tier={tier} size={54} />
+        <TierSigil tier={tier} size={46} />
         <div className="min-w-0">
           <h2
             className={`font-display font-bold uppercase leading-tight tracking-tight ${
@@ -103,7 +103,7 @@ function Yarim({ tier, mice }: { tier: TierConfig; mice: Mouse[] }) {
       </div>
 
       {/* Kadro */}
-      <div className="flex flex-1 flex-wrap content-start gap-2 p-3.5">
+      <div className="flex flex-1 flex-wrap content-start gap-1.5 p-2.5">
         {mice.length === 0 ? (
           <div className="flex w-full items-center py-4 pl-1 font-system text-sm font-semibold italic text-choco/25">
             — Henüz kimse yok —

@@ -52,8 +52,8 @@ export default function TierRow({
 
       {/* Plaka */}
       <div
-        className={`relative flex shrink-0 items-center gap-4 px-5 sm:w-60 sm:flex-col sm:items-start sm:justify-center ${
-          isBetween ? "py-4 sm:py-5" : "py-4 sm:py-6"
+        className={`relative flex shrink-0 items-center gap-4 px-5 sm:w-52 sm:flex-col sm:items-start sm:justify-center ${
+          isBetween ? "py-3 sm:py-4" : "py-3 sm:py-5"
         }`}
         style={{
           background: isBetween
@@ -138,8 +138,8 @@ export default function TierRow({
 
       {/* Kadro */}
       <div
-        className={`flex flex-1 flex-wrap content-start gap-2 ${
-          isBetween ? "p-3.5" : "p-4"
+        className={`flex flex-1 flex-wrap content-start gap-1.5 ${
+          isBetween ? "p-2.5" : "p-3"
         }`}
       >
         {mice.length === 0 ? (

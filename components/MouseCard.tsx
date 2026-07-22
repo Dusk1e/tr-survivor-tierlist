@@ -81,7 +81,7 @@ export default function MouseCard({ mouse }: { mouse: Mouse }) {
         onClick={() => openDetail(mouse)}
         onFocus={show}
         onBlur={hide}
-        className="card-hover group relative flex w-[108px] flex-col items-center gap-1.5 rounded-xl border p-2.5 pb-3 outline-none focus-visible:ring-2 sm:w-[118px]"
+        className="card-hover group relative flex w-[86px] flex-col items-center gap-1 rounded-lg border p-1.5 pb-2 outline-none focus-visible:ring-2 sm:w-[92px]"
         style={{
           ["--tw-ring-color" as any]: tier.accent,
           background: cardBg,
@@ -91,7 +91,7 @@ export default function MouseCard({ mouse }: { mouse: Mouse }) {
       >
         <div className="relative">
           <div
-            className="h-[70px] w-[70px] overflow-hidden rounded-lg border sm:h-[76px] sm:w-[76px]"
+            className="h-[56px] w-[56px] overflow-hidden rounded-md border sm:h-[60px] sm:w-[60px]"
             style={{
               borderColor: mine ? "#4ade8099" : `${tier.accent}66`,
               background: `${tier.accent}12`,
@@ -115,7 +115,7 @@ export default function MouseCard({ mouse }: { mouse: Mouse }) {
             (benimOyum.status === "approved" ||
               benimOyum.status === "pending") && (
             <span
-              className="absolute -right-1.5 -top-1.5 flex h-[19px] w-[19px] items-center justify-center rounded-full ring-2 ring-[#151b24]"
+              className="absolute -right-1 -top-1 flex h-[16px] w-[16px] items-center justify-center rounded-full ring-2 ring-[#151b24]"
               style={{
                 background:
                   benimOyum.status === "approved" ? "#22c55e" : "#eab308",
@@ -129,8 +129,8 @@ export default function MouseCard({ mouse }: { mouse: Mouse }) {
             >
               <svg
                 viewBox="0 0 24 24"
-                width={12}
-                height={12}
+                width={10}
+                height={10}
                 fill="none"
                 stroke="#0b0f15"
                 strokeWidth={3.5}
@@ -146,7 +146,7 @@ export default function MouseCard({ mouse }: { mouse: Mouse }) {
               çapraz karşısında durur, üstteki tik ile çakışmaz. */}
           {hotkeyDamgasi && (
             <span
-              className="absolute -bottom-1 -left-1.5 flex h-[18px] w-[18px] items-center justify-center rounded font-display text-[11px] font-bold leading-none"
+              className="absolute -bottom-0.5 -left-1 flex h-[15px] w-[15px] items-center justify-center rounded font-display text-[9px] font-bold leading-none"
               style={{
                 color: "#ff8a90",
                 border: "1.5px solid #e5646b",
@@ -163,26 +163,26 @@ export default function MouseCard({ mouse }: { mouse: Mouse }) {
           )}
 
           {/* Aşk Köşesi'nde puan yoktur — puanın yerini kalp alır. */}
-          <div className="absolute -bottom-2 -right-3">
+          <div className="absolute -bottom-1.5 -right-2">
             {isLove ? (
               <HeartBadge accent={tier.accent} />
             ) : (
               <ScoreRing
                 value={agg ? agg.overall : null}
                 count={agg?.count}
-                size={38}
-                stroke={4}
+                size={32}
+                stroke={3.5}
               />
             )}
           </div>
         </div>
 
-        <span className="mt-1 max-w-full truncate font-system text-[13px] font-bold text-choco">
+        <span className="mt-0.5 max-w-full truncate font-system text-[11px] font-bold leading-tight text-choco">
           {formatName(mouse.nickname)}
         </span>
 
         {mine && (
-          <span className="rounded-full bg-green-500/12 px-2 py-0.5 font-display text-[8px] font-bold uppercase tracking-[0.1em] text-green-300">
+          <span className="rounded-full bg-green-500/12 px-1.5 py-px font-display text-[7px] font-bold uppercase tracking-[0.08em] text-green-300">
             Giriş Yapıldı
           </span>
         )}
@@ -214,7 +214,7 @@ export default function MouseCard({ mouse }: { mouse: Mouse }) {
 function HeartBadge({ accent }: { accent: string }) {
   return (
     <span
-      className="flex h-[38px] w-[38px] items-center justify-center rounded-full border-2"
+      className="flex h-[32px] w-[32px] items-center justify-center rounded-full border-2"
       style={{
         borderColor: `${accent}88`,
         background: "#151b24",
@@ -222,7 +222,7 @@ function HeartBadge({ accent }: { accent: string }) {
       }}
       aria-label="Aşk Köşesi"
     >
-      <svg viewBox="0 0 100 100" width={19} height={19}>
+      <svg viewBox="0 0 100 100" width={16} height={16}>
         <path
           d="M50,89 C50,89 9,61 9,36 C9,20 21,10 33,10 C41,10 47,15 50,21 C53,15 59,10 67,10 C79,10 91,20 91,36 C91,61 50,89 50,89 Z"
           fill={accent}
