@@ -138,7 +138,9 @@ export default function TierRow({
       </div>
 
       {/* Kadro — bandın tüm genişliğini kullanır */}
-      <div className="flex flex-wrap content-start gap-1.5 p-2.5 pl-3">
+      {/* Kartlar ortadan iki yana eşit yayılır (soldan dizilmek yerine).
+          Sarınca son satır da ortalanır. */}
+      <div className="flex flex-wrap content-start justify-center gap-1.5 px-3 py-2.5">
         {mice.length === 0 ? (
           <div className="flex w-full items-center py-2 pl-1 font-system text-sm font-semibold italic text-choco/25">
             {isLove ? "— Henüz çift yok —" : "— Henüz kimse yok —"}

@@ -107,7 +107,7 @@ function Yarim({ tier, mice }: { tier: TierConfig; mice: Mouse[] }) {
       </div>
 
       {/* Kadro — yarımın tüm genişliğini kullanır */}
-      <div className="flex flex-1 flex-wrap content-start gap-1.5 p-2.5">
+      <div className="flex flex-1 flex-wrap content-start justify-center gap-1.5 px-3 py-2.5">
         {mice.length === 0 ? (
           <div className="flex w-full items-center py-3 pl-1 font-system text-sm font-semibold italic text-choco/25">
             — Henüz kimse yok —
