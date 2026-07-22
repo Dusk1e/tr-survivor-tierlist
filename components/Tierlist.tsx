@@ -37,14 +37,15 @@ export default function Tierlist() {
       <BreakingNews />
 
       {/*
-        Giriş bloğu: bilgi paneli ve sayaçlar AYNI genişlikte, ortalanmış
-        tek bir sütun. Farklı genişlikte olduklarında sayfa dağınık
-        görünüyordu; merdiven tam genişlik kalıyor, bu blok ortada duruyor.
+        Giriş bloğu bültenle ve merdivenle AYNI genişlikte. Daha önce
+        ortalanmış dar bir sütundu; içerik artık ortada küçük bir küme değil,
+        genişliği eşit paylaşan bir ızgara olduğu için tam genişlikte de
+        dolu duruyor. Böylece sayfadaki bütün bloklar aynı hizada.
       */}
-      <div className="mx-auto mb-6 w-full max-w-3xl">
+      <div className="mb-6">
         <UstBilgi />
 
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
           <Stat label="Toplam Fare" value={ready ? String(mice.length) : "…"} />
           <Stat label="Onaylı Oy" value={ready ? String(totalApproved) : "…"} />
           <Stat label="Bölge" value="Türkiye" />
