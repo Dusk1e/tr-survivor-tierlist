@@ -53,6 +53,37 @@ export default function RosterManager({
     refresh();
   }, [refresh]);
 
+  /**
+   * Sürükleme sırasında otomatik kaydırma. 69 fareyle bir fareyi en alttan
+   * en üste taşımak için, imleci ekranın üst/alt kenarına götürünce sayfa
+   * kendiliğinden kayar. Yalnızca sürükleme sürerken çalışır; hiçbir veriye
+   * dokunmaz, tamamen görsel kolaylık.
+   */
+  useEffect(() => {
+    if (!dragId) return;
+    const KENAR = 110; // kenardan bu kadar px içeride kaydırma başlar
+    const MAKS = 22; // kare başına en yüksek kaydırma hızı
+    let hiz = 0;
+    let raf = 0;
+    const uzerinde = (e: DragEvent) => {
+      const y = e.clientY;
+      const h = window.innerHeight;
+      if (y < KENAR) hiz = -Math.ceil(((KENAR - y) / KENAR) * MAKS);
+      else if (y > h - KENAR) hiz = Math.ceil(((y - (h - KENAR)) / KENAR) * MAKS);
+      else hiz = 0;
+    };
+    const tik = () => {
+      if (hiz !== 0) window.scrollBy(0, hiz);
+      raf = requestAnimationFrame(tik);
+    };
+    window.addEventListener("dragover", uzerinde);
+    raf = requestAnimationFrame(tik);
+    return () => {
+      window.removeEventListener("dragover", uzerinde);
+      cancelAnimationFrame(raf);
+    };
+  }, [dragId]);
+
   const grouped = useMemo(() => {
     const map: Record<string, Mouse[]> = {};
     for (const s of SLOTS) map[s.id] = [];
@@ -267,7 +298,7 @@ export default function RosterManager({
       {loading ? (
         <div className="glass h-40 animate-pulse rounded-2xl" />
       ) : (
-        <div className="space-y-5">
+        <div className="space-y-3">
           {SLOTS.map((t) => {
             const roster = grouped[t.id] ?? [];
             const isOver = overSlot === t.id;
@@ -288,29 +319,31 @@ export default function RosterManager({
                   e.preventDefault();
                   handleDrop(t.id as SlotId, overIndex ?? roster.length);
                 }}
-                className="rounded-2xl transition-all"
+                className="rounded-xl transition-all"
                 style={{
                   background: isOver ? `${t.accent}12` : "transparent",
                   outline: isOver ? `2px dashed ${t.accent}88` : "2px dashed transparent",
-                  outlineOffset: "6px",
+                  outlineOffset: "4px",
                 }}
               >
                 <div
-                  className="mb-2 flex items-center gap-2 font-display text-sm font-bold uppercase tracking-wider"
-                  style={{ color: t.deep }}
+                  className="sticky top-0 z-10 mb-1.5 flex items-center gap-2 rounded-lg py-1.5 font-display text-xs font-bold uppercase tracking-wider backdrop-blur-md"
+                  style={{
+                    color: t.deep,
+                    background:
+                      "linear-gradient(180deg, rgba(9,12,20,0.96), rgba(9,12,20,0.72))",
+                  }}
                 >
                   <span
-                    className="inline-flex h-7 w-7 items-center justify-center rounded-lg text-xs font-bold text-white"
+                    className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-[11px] font-bold text-white"
                     style={{
-                      background: isBetween
-                        ? `linear-gradient(145deg, ${t.accent}, ${t.accent2})`
-                        : `linear-gradient(145deg, ${t.accent}, ${t.accent2})`,
+                      background: `linear-gradient(145deg, ${t.accent}, ${t.accent2})`,
                     }}
                   >
                     {t.sigil}
                   </span>
                   {t.label}
-                  <span className="text-xs font-bold text-choco/35 tabular-nums">
+                  <span className="text-[11px] font-bold text-choco/35 tabular-nums">
                     ({roster.length})
                   </span>
                   {isBetween && (
@@ -318,12 +351,18 @@ export default function RosterManager({
                       Ara Bölge
                     </span>
                   )}
+                  <span
+                    className="ml-auto h-px flex-1 max-w-[40%] rounded-full opacity-40"
+                    style={{
+                      background: `linear-gradient(90deg, transparent, ${t.accent})`,
+                    }}
+                  />
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-1">
                   {roster.length === 0 ? (
                     <div
-                      className="rounded-xl border-2 border-dashed px-3 py-4 text-center text-sm font-medium italic transition-colors"
+                      className="rounded-lg border-2 border-dashed px-3 py-2 text-center text-xs font-medium italic transition-colors"
                       style={{
                         borderColor: isOver ? `${t.accent}88` : "rgba(255,255,255,0.08)",
                         color: isOver ? t.deep : "rgba(232,237,244,0.3)",
@@ -475,6 +514,13 @@ function RosterRow({
   const t = tierOf(mouse.tier);
   const rowRef = useRef<HTMLDivElement>(null);
 
+  const surukleBaslat = (e: React.DragEvent) => {
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", mouse.id);
+    if (rowRef.current) e.dataTransfer.setDragImage(rowRef.current, 24, 18);
+    onDragStart();
+  };
+
   return (
     <div
       ref={rowRef}
@@ -485,82 +531,87 @@ function RosterRow({
         const r = e.currentTarget.getBoundingClientRect();
         onRowDragOver(e.clientY - r.top < r.height / 2);
       }}
-      className="glass flex flex-wrap items-center gap-3 rounded-xl px-3 py-2 transition-opacity"
+      className="group glass flex items-center gap-2 overflow-hidden rounded-lg pr-2 transition-opacity"
       style={{
         borderColor: `${t.accent}30`,
-        opacity: dragging ? 0.35 : 1,
+        opacity: dragging ? 0.3 : 1,
       }}
     >
+      {/* Tam boy renkli kulp — kolay tutulsun diye geniş bırakıldı */}
       {caps.canTierEdit && (
-        <div className="flex items-center gap-1.5">
+        <button
+          draggable
+          onDragStart={surukleBaslat}
+          onDragEnd={onDragEnd}
+          title="Sürükleyerek taşı"
+          aria-label="Sürükleyerek taşı"
+          className="flex cursor-grab items-center self-stretch px-2 text-choco/40 transition-colors hover:text-white active:cursor-grabbing"
+          style={{ background: `${t.accent}1a` }}
+        >
+          <GripIcon />
+        </button>
+      )}
+
+      {/* Yukarı/aşağı — bölge içinde ince ayar */}
+      {caps.canTierEdit && (
+        <div className="flex flex-col justify-center">
           <button
-            draggable
-            onDragStart={(e) => {
-              e.dataTransfer.effectAllowed = "move";
-              e.dataTransfer.setData("text/plain", mouse.id);
-              if (rowRef.current)
-                e.dataTransfer.setDragImage(rowRef.current, 24, 20);
-              onDragStart();
-            }}
-            onDragEnd={onDragEnd}
-            title="Sürükleyerek taşı"
-            aria-label="Sürükleyerek taşı"
-            className="cursor-grab rounded-md px-1 py-1 text-choco/35 transition-colors hover:bg-white/5 hover:text-teal-deep active:cursor-grabbing"
+            className="h-3.5 leading-none text-[10px] text-choco/40 hover:text-teal-deep disabled:opacity-20"
+            onClick={() => onReorder("up")}
+            disabled={index === 0}
+            aria-label="Yukarı taşı"
           >
-            <GripIcon />
+            ▲
           </button>
-          <div className="flex flex-col">
-            <button
-              className="h-4 leading-none text-choco/45 hover:text-teal-deep disabled:opacity-20"
-              onClick={() => onReorder("up")}
-              disabled={index === 0}
-              aria-label="Yukarı taşı"
-            >
-              ▲
-            </button>
-            <button
-              className="h-4 leading-none text-choco/45 hover:text-teal-deep disabled:opacity-20"
-              onClick={() => onReorder("down")}
-              disabled={index === count - 1}
-              aria-label="Aşağı taşı"
-            >
-              ▼
-            </button>
-          </div>
+          <button
+            className="h-3.5 leading-none text-[10px] text-choco/40 hover:text-teal-deep disabled:opacity-20"
+            onClick={() => onReorder("down")}
+            disabled={index === count - 1}
+            aria-label="Aşağı taşı"
+          >
+            ▼
+          </button>
         </div>
       )}
 
+      {/* Avatar da ikinci bir kulp — sürükleme alanı büyüsün */}
       <div
-        className="h-11 w-11 shrink-0 overflow-hidden rounded-lg border"
+        draggable={caps.canTierEdit}
+        onDragStart={caps.canTierEdit ? surukleBaslat : undefined}
+        onDragEnd={caps.canTierEdit ? onDragEnd : undefined}
+        className={`my-1 h-8 w-8 shrink-0 overflow-hidden rounded-md border ${
+          caps.canTierEdit ? "cursor-grab active:cursor-grabbing" : ""
+        }`}
         style={{ borderColor: `${t.accent}55`, background: `${t.accent}12` }}
       >
         <MouseAvatar src={mouse.image_url} alt={mouse.nickname} accent={t.accent} />
       </div>
 
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2">
-          <span className="truncate font-system font-bold text-choco">
-            {formatName(mouse.nickname)}
+      {/* İsim + yetkili rozeti */}
+      <div className="flex min-w-0 shrink items-center gap-1.5">
+        <span className="truncate font-system text-sm font-bold text-choco">
+          {formatName(mouse.nickname)}
+        </span>
+        {(mouse.permissions?.length ?? 0) > 0 && (
+          <span className="shrink-0 rounded-full bg-teal/12 px-1.5 py-0.5 font-display text-[8px] font-bold uppercase tracking-wide text-teal-deep ring-1 ring-teal/35">
+            Yetkili
           </span>
-          {(mouse.permissions?.length ?? 0) > 0 && (
-            <span className="shrink-0 rounded-full bg-teal/12 px-1.5 py-0.5 font-display text-[8px] font-bold uppercase tracking-wide text-teal-deep ring-1 ring-teal/35">
-              Yetkili
-            </span>
-          )}
-        </div>
-        <div className="mt-1 flex flex-wrap items-center gap-1.5">
-          <CredChip label="K.adı" value={mouse.username || mouse.nickname} />
-          {caps.canPwView && (
-            <CredChip label="Şifre" value={mouse.password || "—"} mono />
-          )}
-        </div>
+        )}
+      </div>
+
+      {/* Kimlik bilgileri — dar ekranda gizlenir, geniş ekranda tek satır */}
+      <div className="ml-auto hidden shrink-0 items-center gap-1.5 lg:flex">
+        <CredChip label="K.adı" value={mouse.username || mouse.nickname} />
+        {caps.canPwView && (
+          <CredChip label="Şifre" value={mouse.password || "—"} mono />
+        )}
       </div>
 
       {caps.canTierEdit && (
         <select
           value={mouse.tier}
           onChange={(e) => onMove(e.target.value as SlotId)}
-          className="field !w-auto max-w-[190px] py-1 text-xs"
+          className="field ml-auto !w-auto max-w-[150px] shrink-0 py-1 text-xs lg:ml-0"
           aria-label="Konuma taşı"
         >
           {SLOTS.map((s) => (
@@ -572,8 +623,10 @@ function RosterRow({
       )}
 
       {confirming ? (
-        <div className="flex items-center gap-1">
-          <span className="text-xs font-bold text-red-400">Silinsin mi?</span>
+        <div className="flex shrink-0 items-center gap-1">
+          <span className="hidden text-xs font-bold text-red-400 sm:inline">
+            Silinsin mi?
+          </span>
           <button className="btn-danger px-2 py-1 text-xs" onClick={onConfirmDelete}>
             Evet
           </button>
@@ -582,14 +635,22 @@ function RosterRow({
           </button>
         </div>
       ) : (
-        <div className="flex items-center gap-1">
+        <div className="flex shrink-0 items-center gap-1">
           {(caps.canTierEdit || caps.canPwEdit) && (
-            <button className="btn-ghost px-2 py-1 text-xs" onClick={onEdit}>
+            <button
+              className="btn-ghost px-2 py-1 text-xs"
+              onClick={onEdit}
+              title="Düzenle"
+            >
               Düzenle
             </button>
           )}
           {caps.canDelete && (
-            <button className="btn-danger px-2 py-1 text-xs" onClick={onAskDelete}>
+            <button
+              className="btn-danger px-2 py-1 text-xs"
+              onClick={onAskDelete}
+              title="Sil"
+            >
               Sil
             </button>
           )}
@@ -621,13 +682,13 @@ function CredChip({
           () => {}
         );
       }}
-      title="Kopyalamak için tıkla"
-      className="inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-white/[0.04] px-1.5 py-0.5 text-[11px] font-semibold text-choco/70 transition hover:border-teal/50 hover:text-teal-deep"
+      title={`${value} — kopyalamak için tıkla`}
+      className="inline-flex max-w-[170px] items-center gap-1 rounded-md border border-white/10 bg-white/[0.04] px-1.5 py-0.5 text-[11px] font-semibold text-choco/70 transition hover:border-teal/50 hover:text-teal-deep"
     >
-      <span className="font-display text-[8px] font-bold uppercase tracking-wider text-choco/40">
+      <span className="shrink-0 font-display text-[8px] font-bold uppercase tracking-wider text-choco/40">
         {label}
       </span>
-      <span className={mono ? "font-mono" : ""}>
+      <span className={`truncate ${mono ? "font-mono" : ""}`}>
         {copied ? "kopyalandı" : value}
       </span>
     </button>
