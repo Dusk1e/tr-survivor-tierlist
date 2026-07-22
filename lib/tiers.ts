@@ -132,3 +132,40 @@ export const SLOT_WEIGHT: Record<SlotId, number> = {
 export function weightOf(slot: string | undefined): number {
   return SLOT_WEIGHT[slot as SlotId] ?? 1;
 }
+
+/* ======================= puana göre tier rengi ========================== */
+
+export interface PuanRengi {
+  /** Ana renk — halka ve rakam. */
+  ana: string;
+  /** Varsa ikinci renk: iki renkli geçiş (M – S arası bandı). */
+  ikinci?: string;
+  /** Puanın hangi banda düştüğü — ipucu metninde kullanılır. */
+  etiket: string;
+}
+
+/**
+ * Puan halkasının rengi, puanın denk geldiği TIER'ın rengidir.
+ * Böylece 90 puanlık bir fare Monarch altınıyla, 65 puanlık bir fare
+ * B-Rank turkuazıyla parlar; renk tek başına sıralamayı anlatır.
+ *
+ * Tier renkleri (`deep` tonları) kullanılır — koyu zeminde daha okunur.
+ * 55'in altı tier'lara denk gelmediği için uyarı renkleri: 30'a kadar
+ * turuncu, 30'un altı kırmızı.
+ */
+const PUAN_BANTLARI: { esik: number; renk: PuanRengi }[] = [
+  { esik: 89, renk: { ana: "#f3cf7e", etiket: "Monarch" } },
+  { esik: 84, renk: { ana: "#f3cf7e", ikinci: "#c4b0fc", etiket: "M – S Arası" } },
+  { esik: 79, renk: { ana: "#c4b0fc", etiket: "S-Rank" } },
+  { esik: 73, renk: { ana: "#8ad2f2", etiket: "A-Rank" } },
+  { esik: 63, renk: { ana: "#7fd6c6", etiket: "B-Rank" } },
+  { esik: 55, renk: { ana: "#a3d193", etiket: "C-Rank" } },
+  { esik: 30, renk: { ana: "#f0913c", etiket: "Gelişmeli" } },
+  { esik: 0, renk: { ana: "#e5646b", etiket: "Düşük" } },
+];
+
+export function puanRengi(v: number): PuanRengi {
+  const n = Math.max(0, Math.min(100, v));
+  const bant = PUAN_BANTLARI.find((b) => n >= b.esik);
+  return (bant ?? PUAN_BANTLARI[PUAN_BANTLARI.length - 1]).renk;
+}

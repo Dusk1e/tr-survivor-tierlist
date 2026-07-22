@@ -1,10 +1,12 @@
 "use client";
 
-import { scoreColor } from "@/lib/dims";
+import { useId } from "react";
+import { puanRengi } from "@/lib/tiers";
 
 /**
- * Colored score circle. Ring + number colored by how good the score is;
- * the red corner badge shows HOW MANY approved votes it's based on.
+ * Puan halkası. Renk, puanın denk geldiği TIER'ın rengidir — 89+ Monarch
+ * altını, 84+ Monarch/S geçişi, 79+ S moru… 55 altı turuncu, 30 altı kırmızı.
+ * Sağ alttaki kırmızı rozet kaç ONAYLI oya dayandığını gösterir.
  */
 export default function ScoreRing({
   value,
@@ -22,11 +24,32 @@ export default function ScoreRing({
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
   const pct = value == null ? 0 : Math.max(0, Math.min(100, value));
-  const color = value == null ? "#5b6470" : scoreColor(pct);
+
+  const renk =
+    value == null
+      ? { ana: "#5b6470", ikinci: undefined, etiket: "" }
+      : puanRengi(pct);
+
+  // İki renkli bantta halka için gradyan gerekiyor; id'ler örnek başına eşsiz.
+  const uid = useId().replace(/[:»]/g, "");
+  const gid = `sr-${uid}`;
+  const cizgi = renk.ikinci ? `url(#${gid})` : renk.ana;
 
   return (
-    <div className="relative inline-block" style={{ width: size, height: size }}>
+    <div
+      className="relative inline-block"
+      style={{ width: size, height: size }}
+      title={renk.etiket ? `${Math.round(pct)} · ${renk.etiket}` : undefined}
+    >
       <svg width={size} height={size} className="-rotate-90">
+        {renk.ikinci && (
+          <defs>
+            <linearGradient id={gid} x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor={renk.ana} />
+              <stop offset="100%" stopColor={renk.ikinci} />
+            </linearGradient>
+          </defs>
+        )}
         <circle
           cx={size / 2}
           cy={size / 2}
@@ -41,21 +64,33 @@ export default function ScoreRing({
             cy={size / 2}
             r={r}
             fill="none"
-            stroke={color}
+            stroke={cizgi}
             strokeWidth={stroke}
             strokeLinecap="round"
             strokeDasharray={c}
             strokeDashoffset={c - (c * pct) / 100}
             style={{
               transition: "stroke-dashoffset 0.6s ease",
-              filter: `drop-shadow(0 0 4px ${color}aa)`,
+              filter: `drop-shadow(0 0 4px ${renk.ana}aa)`,
             }}
           />
         )}
       </svg>
+
       <span
         className="absolute inset-0 flex items-center justify-center font-display font-bold"
-        style={{ color, fontSize: size * 0.3 }}
+        style={
+          renk.ikinci
+            ? {
+                // İki renkli bantta rakam da geçişli boyanır.
+                backgroundImage: `linear-gradient(135deg, ${renk.ana}, ${renk.ikinci})`,
+                WebkitBackgroundClip: "text",
+                backgroundClip: "text",
+                color: "transparent",
+                fontSize: size * 0.3,
+              }
+            : { color: renk.ana, fontSize: size * 0.3 }
+        }
       >
         {value == null ? "–" : `${Math.round(pct)}`}
       </span>
