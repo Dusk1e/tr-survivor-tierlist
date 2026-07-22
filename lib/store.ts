@@ -281,11 +281,45 @@ export async function getSetting(key: string): Promise<string | null> {
   return (data as { value: string } | null)?.value ?? null;
 }
 
+/**
+ * Ayar yazar. upsert(onConflict) KULLANMAZ: tabloda "key" üzerinde tekil
+ * kısıt yoksa upsert hata verir ve kayıt sessizce düşer. Bunun yerine önce
+ * bakar, varsa günceller, yoksa ekler — kısıt olsa da olmasa da çalışır.
+ * (Yetkili listesinde de aynı dersi almıştık.)
+ */
 export async function setSetting(key: string, value: string): Promise<void> {
-  const { error } = await db()
+  const c = db();
+
+  const mevcut = await c
     .from(SETTINGS_TABLE)
-    .upsert([{ key, value }], { onConflict: "key" });
-  if (error) throw ayarHatasi(error.message);
+    .select("key")
+    .eq("key", key)
+    .maybeSingle();
+  if (mevcut.error) throw ayarHatasi(mevcut.error.message);
+
+  if (mevcut.data) {
+    const { error } = await c
+      .from(SETTINGS_TABLE)
+      .update({ value })
+      .eq("key", key);
+    if (error) throw ayarHatasi(error.message);
+  } else {
+    const { error } = await c.from(SETTINGS_TABLE).insert([{ key, value }]);
+    if (error) throw ayarHatasi(error.message);
+  }
+
+  // Gerçekten yazıldı mı? Sessiz başarısızlığa izin verme.
+  const dogrula = await c
+    .from(SETTINGS_TABLE)
+    .select("value")
+    .eq("key", key)
+    .maybeSingle();
+  if (dogrula.error) throw ayarHatasi(dogrula.error.message);
+  if (!dogrula.data || (dogrula.data as { value: string }).value !== value)
+    throw new Error(
+      "Kayıt veritabanına yazılamadı (yazma sonrası doğrulama başarısız). " +
+        "settings tablosunun izinlerini kontrol et."
+    );
 }
 
 /* ============================== aşk köşesi ============================== */

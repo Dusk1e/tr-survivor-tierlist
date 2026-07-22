@@ -65,6 +65,33 @@ export async function GET() {
         : ((real.data ?? []) as { name: string }[]).map((r) => r.name);
       info.sonYetkiliIslemi = authorityDebug.son;
 
+      // TFM Bülteni — settings tablosu gerçekte ne durumda?
+      const ayar = await c.from("settings").select("key,value");
+      if (ayar.error) {
+        info.bulten = {
+          tablo: "OKUNAMIYOR",
+          hata: ayar.error.message,
+          kod: ayar.error.code ?? null,
+          yapilacak:
+            "Supabase → SQL Editor: create table if not exists public.settings (key text primary key, value text not null default ''); alter table public.settings enable row level security;",
+        };
+      } else {
+        const satirlar = (ayar.data ?? []) as { key: string; value: string }[];
+        const t = satirlar.find((r) => r.key === "ticker");
+        let cozulmus: unknown = null;
+        try {
+          cozulmus = t ? JSON.parse(t.value) : null;
+        } catch {
+          cozulmus = "JSON cozulemedi: " + (t?.value ?? "").slice(0, 120);
+        }
+        info.bulten = {
+          tablo: "TAMAM",
+          satirSayisi: satirlar.length,
+          anahtarlar: satirlar.map((r) => r.key),
+          tickerKaydi: cozulmus,
+        };
+      }
+
       // Hangi sorgu bicimi bu tabloda patliyor? (salt-okunur test)
       const [ordered, filtered] = await Promise.all([
         c.from("authorities").select("name").order("name"),
