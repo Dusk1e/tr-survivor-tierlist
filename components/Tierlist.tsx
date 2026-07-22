@@ -32,6 +32,9 @@ export default function Tierlist() {
 
   return (
     <div className="mx-auto w-full max-w-wide px-5 py-6 sm:px-8">
+      {/* Nasıl oy verilir — en üstte */}
+      <NasilOyVerilir />
+
       {/* disclaimer */}
       <div
         className="mb-6 rounded-2xl border border-cheese/25 bg-cheese/[0.07] px-4 py-3 text-center"
@@ -75,17 +78,56 @@ export default function Tierlist() {
             ))}
       </div>
 
-      {/* How-to hint */}
-      <p className="mt-8 text-center font-system text-sm font-semibold leading-relaxed text-choco/60">
-        <span className="text-teal-deep">Kendi farene tıkla</span> → sana
-        verilen <span className="text-cheese-deep">şifre ile giriş yap</span> →
-        tanıdığın farelere{" "}
-        <span className="text-grass-deep">gerçekçi oy ver</span>.
-        <br />
-        <span className="text-xs font-medium text-choco/40">
-          Oynayışını bilmediğin fareleri puanlama lütfen. Puanlar yetkili
-          onayından sonra ortalamaya işlenir.
-        </span>
+    </div>
+  );
+}
+
+/**
+ * Nasıl oy verilir — sayfanın en üstünde, üç eşit adım hâlinde.
+ * Adımlar ortalanır ve aralarına ok konur; dar ekranda alt alta iner.
+ */
+function NasilOyVerilir() {
+  const adimlar = [
+    { no: 1, baslik: "Kendi farene tıkla", renk: "#49c0c2" },
+    { no: 2, baslik: "Şifrenle giriş yap", renk: "#d7a441" },
+    { no: 3, baslik: "Gerçekçi oy ver", renk: "#74d36a" },
+  ];
+
+  return (
+    <div className="mb-6 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-5 sm:px-6">
+      <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-4">
+        {adimlar.map((a, i) => (
+          <div key={a.no} className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5">
+              <span
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full font-display text-xs font-bold"
+                style={{
+                  color: "#0b0f15",
+                  background: a.renk,
+                  boxShadow: `0 0 14px ${a.renk}66`,
+                }}
+              >
+                {a.no}
+              </span>
+              <span
+                className="whitespace-nowrap font-system text-sm font-bold sm:text-[15px]"
+                style={{ color: a.renk }}
+              >
+                {a.baslik}
+              </span>
+            </div>
+            {i < adimlar.length - 1 && (
+              <span className="hidden text-lg font-bold text-choco/25 sm:inline">
+                →
+              </span>
+            )}
+          </div>
+        ))}
+      </div>
+
+      <p className="mx-auto mt-4 max-w-2xl text-center font-system text-xs font-medium leading-relaxed text-choco/45">
+        Oynayışını bilmediğin fareleri puanlama lütfen. Puanlar yetkili
+        onayından sonra ortalamaya işlenir.
       </p>
     </div>
   );
