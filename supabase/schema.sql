@@ -90,3 +90,11 @@ create table if not exists public.settings (
   value text not null default ''
 );
 alter table public.settings enable row level security;
+
+-- =====================================================================
+--  MEVCUT KURULUMA EKLEME (puanlama: cipa + fark modeli)
+--  Her oy, verildigi andaki hedef tabanini saklar. Boylece hedef tier
+--  degistirdiginde eski oylar yeniden yorumlanmaz.
+-- =====================================================================
+alter table public.votes
+  add column if not exists target_baseline integer;

@@ -5,6 +5,7 @@ import { SEED_MICE, SEED_VOTES } from "./seed";
 import { aggregateVotes } from "./aggregate";
 import { sanitizeScores } from "./dims";
 import { sanitizePerms } from "./perms";
+import { tierOf } from "./tiers";
 import {
   Mouse,
   MouseInput,
@@ -398,6 +399,8 @@ export async function submitVote(
     scores: clean,
     hotkey,
     status: "pending",
+    // Oyun kıyaslanacağı taban, verildiği anda dondurulur.
+    target_baseline: tierOf(target.tier).baseline,
     created_at: new Date().toISOString(),
   };
   if (idx >= 0) votes[idx] = record;

@@ -78,6 +78,14 @@ export interface Vote {
   scores: Scores; // 0..100 per dimension
   hotkey: boolean; // "Hotkey kullandığını düşünüyor musun?"
   status: VoteStatus;
+  /**
+   * Oy verildiği anda HEDEFİN tier taban puanı. Oy bu değere göre "artı"
+   * ya da "eksi" sayılır ve bu yorum sonradan değişmez. Böylece hedef tier
+   * değiştirdiğinde eski oylar yeniden yorumlanmaz; puan sadece yeni
+   * çıpaya (yeni tabana) kayar, kazanılan fark korunur.
+   * Eski kayıtlarda yoktur; o durumda hedefin güncel tabanı kullanılır.
+   */
+  target_baseline?: number | null;
   created_at: string;
   decided_at?: string;
   decided_by?: string;

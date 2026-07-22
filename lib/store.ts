@@ -4,6 +4,7 @@ import { MICE_TABLE, supabaseService } from "./supabase";
 import { Mouse, MouseInput, PermId, Scores, Vote, VoteStatus } from "./types";
 import { SEED_MICE } from "./seed";
 import { sanitizePerms } from "./perms";
+import { tierOf } from "./tiers";
 
 /**
  * Server-side data access (cloud mode). ALL access goes through the service
@@ -183,6 +184,8 @@ function rowToVote(r: any): Vote {
     },
     hotkey: !!r.hotkey,
     status: (r.status ?? "pending") as VoteStatus,
+    target_baseline:
+      typeof r.target_baseline === "number" ? r.target_baseline : null,
     created_at: r.created_at ?? "",
     decided_at: r.decided_at ?? undefined,
     decided_by: r.decided_by ?? undefined,
@@ -229,6 +232,9 @@ export async function submitVote(
     saman_play: scores.saman_play,
     ws_guven: scores.ws_guven,
     hotkey,
+    // Oyun "artı mı eksi mi" olduğu bu değere göre belirlenir ve bir daha
+    // değişmez. Hedef sonradan tier değiştirse bile oy yeniden yorumlanmaz.
+    target_baseline: tierOf(target.tier).baseline,
     status: "pending",
     decided_at: null,
     decided_by: null,
