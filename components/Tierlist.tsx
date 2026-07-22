@@ -48,6 +48,19 @@ export default function Tierlist() {
           Tierlist sıralaması değişkendir. Aktif oynanışa göre değil; zamana
           göre genel bir değerlendirmedir!
         </p>
+        {/* Küçük ama gözden kaçmayan hatırlatma. */}
+        <p className="mt-2 flex justify-center">
+          <span
+            className="inline-block rounded-full px-3 py-1 font-system text-xs font-bold"
+            style={{
+              color: "#8ad2f2",
+              background: "rgba(79,179,224,0.12)",
+              border: "1px solid rgba(79,179,224,0.45)",
+            }}
+          >
+            Puanlar sadece oyuncunun istatistiğini belirler.
+          </span>
+        </p>
       </div>
 
       {/* Stats strip */}
