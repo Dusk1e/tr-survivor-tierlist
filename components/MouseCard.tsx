@@ -25,9 +25,10 @@ export default function MouseCard({ mouse }: { mouse: Mouse }) {
   const agg = aggFor(mouse.id);
   // Giriş yapan oyuncunun bu fareye verdiği puan (yoksa undefined).
   const benimOyum = myVoteFor(mouse.id);
-  // Gerçek oy varsa ve çoğunluk "hotkey kullanıyor" diyorsa damga çıkar.
+  // Damga için eşik %75: sıradan bir çoğunluk yetmez, oy verenlerin dörtte
+  // üçü "hotkey kullanıyor" demeli.
   const hotkeyDamgasi = Boolean(
-    !isLove && agg && agg.count > 0 && agg.hotkeyYesPct >= 50
+    !isLove && agg && agg.count > 0 && agg.hotkeyYesPct >= 75
   );
 
   const [peek, setPeek] = useState(false);
