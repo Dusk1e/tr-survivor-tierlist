@@ -87,60 +87,56 @@ export default function Tierlist() {
  */
 function UstBilgi() {
   const adimlar = [
-    "Kendi farene tıkla",
-    "Şifrenle giriş yap",
-    "Gerçekçi oy ver",
+    { baslik: "Kendi farene tıkla", alt: "Listede kendi adını bul" },
+    { baslik: "Şifrenle giriş yap", alt: "Şifreni yetkililerden al" },
+    { baslik: "Gerçekçi oy ver", alt: "Tanımadığını puanlama" },
   ];
 
   return (
     // Genişliği dışarıdaki giriş bloğu belirler; burada sadece kutu var.
     <div className="mb-2.5">
-      <div className="rounded-xl border border-white/8 bg-white/[0.03] px-5 py-3.5">
-        {/* Adımlar — tek renk, parıltısız */}
-        <div className="flex flex-wrap items-center justify-center gap-x-1.5 gap-y-1.5">
-          {adimlar.map((baslik, i) => (
-            <div key={baslik} className="flex items-center gap-2">
-              <span className="flex h-[20px] w-[20px] shrink-0 items-center justify-center rounded-full bg-teal/80 font-display text-[10px] font-bold text-abyss">
-                {i + 1}
+      <div className="rounded-xl border border-white/8 bg-white/[0.03] px-4 py-4">
+        {/* Üç EŞİT sütun — her adım kendi hücresinde, aralarında ince çizgi.
+            Tek satıra dizilmiş nokta ayraçlı metinden çok daha okunur ve
+            gerçekten simetrik. */}
+        <div className="grid grid-cols-1 divide-y divide-white/8 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+          {adimlar.map((a, i) => (
+            <div
+              key={a.baslik}
+              className="flex flex-col items-center gap-1 px-3 py-2 text-center sm:py-0"
+            >
+              <div className="flex items-center gap-2">
+                <span className="flex h-[19px] w-[19px] shrink-0 items-center justify-center rounded-full bg-teal/75 font-display text-[10px] font-bold text-abyss">
+                  {i + 1}
+                </span>
+                <span className="font-system text-[13px] font-bold text-choco/90">
+                  {a.baslik}
+                </span>
+              </div>
+              <span className="font-system text-[11px] font-medium text-choco/40">
+                {a.alt}
               </span>
-              <span className="whitespace-nowrap font-system text-[13px] font-bold text-choco/90">
-                {baslik}
-              </span>
-              {i < adimlar.length - 1 && (
-                <span className="mx-1.5 hidden text-choco/20 sm:inline">→</span>
-              )}
             </div>
           ))}
         </div>
 
-        <div className="hairline my-2.5" />
+        <div className="hairline my-3" />
 
-        {/* Notlar — sönük */}
-        <p className="text-center font-system text-[11px] font-medium leading-relaxed text-choco/40">
-          Şifreni yetkililerden alabilirsin
-          <Ayrac />
-          Oynayışını bilmediğin fareleri puanlama
-          <Ayrac />
-          Puanlar yetkili onayından sonra işlenir
-        </p>
-
-        {/* Uyarı — tek renk (sarı) */}
-        <p className="mt-1 text-center font-system text-[11px] font-semibold leading-relaxed text-cheese-deep">
-          Sıralama değişkendir, zamana göre genel bir değerlendirmedir
-          <Ayrac />
+        {/* Kurallar — tek renk (sarı), iki kısa satır */}
+        <p className="text-center font-system text-[11px] font-semibold leading-[1.7] text-cheese-deep">
+          Puanlar yetkili onayından sonra ortalamaya işlenir
+          <br className="sm:hidden" />
+          <span aria-hidden className="mx-2 hidden text-cheese-deep/35 sm:inline">
+            ·
+          </span>
           Puanlar sadece oyuncunun istatistiğini belirler
+          <br />
+          <span className="text-cheese-deep/70">
+            Sıralama değişkendir, zamana göre genel bir değerlendirmedir
+          </span>
         </p>
       </div>
     </div>
-  );
-}
-
-/** Satır içi ayraç — noktalarla ayrılan kısa notlar için. */
-function Ayrac() {
-  return (
-    <span aria-hidden className="mx-2 text-choco/20">
-      ·
-    </span>
   );
 }
 
