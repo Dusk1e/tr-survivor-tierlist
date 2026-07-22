@@ -92,6 +92,49 @@ body {
     transparent 100%
   );
 }
+/*
+  Atatürk portresi — ay-yıldızın tam arkasında, AYNI dikey eksende
+  (ikisi de left:50% + translateX(-50%) kullanır, yani simetri garanti).
+  Siyah-beyaz ve düşük opaklıkta durur ki bayrağın kırmızısıyla ve
+  beyaz ay-yıldızla yarışmasın. Kenarları radyal maskeyle eritilir;
+  yapıştırılmış bir kare değil, bayrağın içinden çıkan bir kabartma gibi.
+  Dosya (public/ataturk.jpg) yoksa katman görünmez, bant bozulmaz.
+*/
+.flag-banner__portrait {
+  position: absolute;
+  left: 50%;
+  /*
+    Ay-yıldız top:40px'te ve ~142px yüksekliğinde, yani merkezi y=111.
+    Portre de 260px olup top:-19px'e oturunca merkezi y=111 olur —
+    ikisi EŞ MERKEZLİ. Üstten taşan kısım bandın dışında kalır ve
+    radyal maskeyle zaten erir.
+  */
+  top: -19px;
+  transform: translateX(-50%);
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  background-image: url("/ataturk.jpg");
+  background-size: cover;
+  /* Yüz dairenin ortasına gelsin diye üstten hizalanır. */
+  background-position: center 20%;
+  background-repeat: no-repeat;
+  filter: grayscale(1) contrast(1.08) brightness(1.06);
+  opacity: 0.34;
+  -webkit-mask-image: radial-gradient(
+    circle at 50% 46%,
+    #000 42%,
+    rgba(0, 0, 0, 0.6) 64%,
+    transparent 80%
+  );
+  mask-image: radial-gradient(
+    circle at 50% 46%,
+    #000 42%,
+    rgba(0, 0, 0, 0.6) 64%,
+    transparent 80%
+  );
+}
+
 .flag-banner__emblem {
   position: absolute;
   left: 50%;

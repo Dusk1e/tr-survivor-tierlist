@@ -1,11 +1,20 @@
 /**
  * Sayfanın üst kısmını kaplayan Türk bayrağı — gerçek bayrak kırmızısı,
- * aşağı doğru yumuşak geçişle kaybolur. Hilal + yıldız tam ortada, hafif
- * parlayarak nefes alır. Beyaz geçiş/ışık süzülmesi yok.
+ * aşağı doğru yumuşak geçişle kaybolur.
+ *
+ * Ay-yıldızın TAM ARKASINDA Atatürk portresi durur: aynı dikey eksende,
+ * dairesel, siyah-beyaz ve kenarları erimiş hâlde. Böylece yapıştırılmış
+ * bir kare gibi değil, bayrağın içinden çıkıyormuş gibi görünür.
+ *
+ * Portre `public/ataturk.jpg` dosyasından gelir. Dosya yoksa katman
+ * sessizce boş kalır, bant eskisi gibi çalışmaya devam eder.
  */
 export default function FlagBanner() {
   return (
     <div className="flag-banner" aria-hidden>
+      {/* Portre — ay-yıldızla aynı eksende, onun arkasında */}
+      <div className="flag-banner__portrait" />
+
       <svg className="flag-banner__emblem" viewBox="0 0 124 80">
         <defs>
           <mask id="fb-crescent">
