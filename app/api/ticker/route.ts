@@ -12,9 +12,22 @@ const ANAHTAR = "ticker";
 function ayikla(ham: unknown): TickerConfig {
   const o = (ham ?? {}) as Partial<TickerConfig>;
   const hiz = Number(o.hiz);
+
+  // Notlar dizisi yoksa eski tek-metinli kayıttan devral (geriye uyum).
+  const kaynak: unknown[] = Array.isArray(o.notlar)
+    ? o.notlar
+    : typeof o.metin === "string" && o.metin.trim()
+    ? [o.metin]
+    : [];
+
+  const notlar = kaynak
+    .map((n) => String(n ?? "").trim().slice(0, 300))
+    .filter(Boolean)
+    .slice(0, 20); // bant okunmaz hale gelmesin
+
   return {
     aktif: Boolean(o.aktif),
-    metin: String(o.metin ?? "").slice(0, 500),
+    notlar,
     // 10 sn = çok hızlı, 120 sn = çok yavaş. Aralık dışı değerler kırpılır.
     hiz: Number.isFinite(hiz) ? Math.min(120, Math.max(10, hiz)) : 40,
   };

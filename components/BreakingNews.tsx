@@ -28,8 +28,13 @@ export default function BreakingNews() {
     };
   }, [oku]);
 
-  const metin = (cfg?.metin ?? "").trim();
-  if (!cfg?.aktif || !metin) return null;
+  const notlar = (cfg?.notlar ?? []).map((n) => n.trim()).filter(Boolean);
+  if (!cfg?.aktif || notlar.length === 0) return null;
+
+  // Süre içerik uzunluğuna göre hesaplanır: not eklendikçe bant uzar ama
+  // kayma hızı sabit kalır. Yoksa çok not girilince yazı uçup gidiyordu.
+  const toplamUzunluk = notlar.join("").length;
+  const sure = Math.max(12, Math.round((toplamUzunluk / 100) * cfg.hiz));
 
   return (
     <div className="sd-sahne mb-6" role="status" aria-live="polite">
@@ -44,12 +49,9 @@ export default function BreakingNews() {
 
         {/* Kayan yazı */}
         <div className="sd-maske relative flex-1 overflow-hidden">
-          <div
-            className="sd-kay py-2.5"
-            style={{ animationDuration: `${cfg.hiz}s` }}
-          >
-            <Parca metin={metin} />
-            <Parca metin={metin} />
+          <div className="sd-kay py-2.5" style={{ animationDuration: `${sure}s` }}>
+            <Parca notlar={notlar} />
+            <Parca notlar={notlar} />
           </div>
         </div>
       </div>
@@ -58,21 +60,22 @@ export default function BreakingNews() {
 }
 
 /**
- * Şeridin bir kopyası. İki kopya yan yana durur; şerit kendi genişliğinin
- * yarısı kadar kaydığında ikinci kopya birincinin yerine oturur ve
- * dönüş dikişsiz görünür.
+ * Şeridin bir kopyası — bütün notlar sırayla, aralarında ayraçla dizilir.
+ * İki kopya yan yana durur; şerit kendi genişliğinin yarısı kadar
+ * kaydığında ikinci kopya birincinin yerine oturur, yani son nottan sonra
+ * ilk nota dönüş dikişsiz olur.
  */
-function Parca({ metin }: { metin: string }) {
+function Parca({ notlar }: { notlar: string[] }) {
   return (
     <span className="sd-metin flex shrink-0 items-center font-system text-sm font-bold text-white sm:text-[15px]">
-      <span className="px-6">{metin}</span>
-      <span aria-hidden className="text-white/45">
-        •
-      </span>
-      <span className="px-6">{metin}</span>
-      <span aria-hidden className="text-white/45">
-        •
-      </span>
+      {notlar.map((not, i) => (
+        <span key={i} className="flex shrink-0 items-center">
+          <span className="px-6">{not}</span>
+          <span aria-hidden className="text-white/40">
+            ◆
+          </span>
+        </span>
+      ))}
     </span>
   );
 }

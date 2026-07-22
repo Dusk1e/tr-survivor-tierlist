@@ -45,14 +45,20 @@ export type MouseInput = Omit<Mouse, "id" | "created_at">;
 /** Sitenin en üstündeki "Son Dakika" kayan haber bandı. */
 export interface TickerConfig {
   aktif: boolean;
-  metin: string;
-  /** Yazının bir turu kaç saniyede tamamlansın (büyük = yavaş). */
+  /** Notlar sırayla geçer, sonuncudan sonra başa döner. */
+  notlar: string[];
+  /**
+   * Kayma hızı: 100 karakterlik yazının geçmesi kaç saniye sürsün.
+   * Not eklendikçe toplam süre uzar, hız sabit kalır.
+   */
   hiz: number;
+  /** Eski tek metinli kayıtlar için — okurken notlar'a çevrilir. */
+  metin?: string;
 }
 
 export const TICKER_VARSAYILAN: TickerConfig = {
   aktif: false,
-  metin: "",
+  notlar: [],
   hiz: 40,
 };
 
