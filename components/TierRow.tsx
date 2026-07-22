@@ -64,11 +64,14 @@ export default function TierRow({
       <div
         className="relative flex items-center justify-center gap-2.5 px-3 py-1.5"
         style={{
+          // Parıltı ORTADA en güçlü, iki kenara doğru eriyor. Eskiden
+          // soldan başlayıp sağa sönüyordu ve renk hep sola yığılmış
+          // görünüyordu. Ara bölgede iki tier rengi ortada buluşur.
           background: isBetween
-            ? `linear-gradient(90deg, ${upper!.accent}26, ${lower!.accent}26)`
-            : `linear-gradient(90deg, ${tier.accent}${
-                glow >= 2.4 ? "2e" : "1f"
-              }, ${tier.accent}0a 55%, transparent)`,
+            ? `linear-gradient(90deg, transparent 0%, ${upper!.accent}30 38%, ${lower!.accent}30 62%, transparent 100%)`
+            : `linear-gradient(90deg, transparent 0%, ${tier.accent}${
+                glow >= 2.4 ? "33" : "24"
+              } 50%, transparent 100%)`,
           borderBottom: `1px solid ${tier.accent}22`,
         }}
       >

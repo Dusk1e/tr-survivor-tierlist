@@ -67,9 +67,10 @@ function Yarim({ tier, mice }: { tier: TierConfig; mice: Mouse[] }) {
       <div
         className="relative flex items-center justify-center gap-2.5 px-3 py-1.5"
         style={{
-          background: `linear-gradient(90deg, ${tier.accent}${
-            glow >= 2.4 ? "2e" : "1f"
-          }, ${tier.accent}0a 55%, transparent)`,
+          // Parıltı yarımın ORTASINDA en güçlü, iki kenara doğru eriyor.
+          background: `linear-gradient(90deg, transparent 0%, ${tier.accent}${
+            glow >= 2.4 ? "33" : "24"
+          } 50%, transparent 100%)`,
           borderBottom: `1px solid ${tier.accent}22`,
         }}
       >
