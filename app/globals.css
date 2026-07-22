@@ -100,38 +100,45 @@ body {
   yapıştırılmış bir kare değil, bayrağın içinden çıkan bir kabartma gibi.
   Dosya (public/ataturk.jpg) yoksa katman görünmez, bant bozulmaz.
 */
+/*
+  Atatürk portresi — ay-yıldızın arkasında, aynı dikey eksende.
+
+  KOMPOZİSYON: Ay-yıldız y=40..182 aralığında duruyor. Portre, KALPAĞI bu
+  aralığa denk gelecek şekilde konumlandı; yüz ay-yıldızın ALTINDA, açıkta
+  kalıyor. Önceki hâlinde yıldız tam gözlerin üstüne oturuyor ve portreyi
+  harcıyordu. Beyaz ay-yıldız artık koyu kalpağın üzerinde duruyor, kontrast
+  da bu sayede en yüksek noktasında.
+
+  Yatay simetri: emblem ile aynı left:50% + translateX(-50%) kullanır.
+  Dosya (public/ataturk.jpg) yoksa katman görünmez, bant bozulmaz.
+*/
 .flag-banner__portrait {
   position: absolute;
   left: 50%;
-  /*
-    Ay-yıldız top:40px'te ve ~142px yüksekliğinde, yani merkezi y=111.
-    Portre de 260px olup top:-19px'e oturunca merkezi y=111 olur —
-    ikisi EŞ MERKEZLİ. Üstten taşan kısım bandın dışında kalır ve
-    radyal maskeyle zaten erir.
-  */
-  top: -19px;
+  top: 30px;
   transform: translateX(-50%);
-  width: 260px;
-  height: 260px;
-  border-radius: 50%;
+  width: 240px;
+  height: 300px;
   background-image: url("/ataturk.jpg");
   background-size: cover;
-  /* Yüz dairenin ortasına gelsin diye üstten hizalanır. */
-  background-position: center 20%;
+  /* Üstten hizalanır: kalpak yukarıda, yüz aşağıda kalsın. */
+  background-position: center top;
   background-repeat: no-repeat;
-  filter: grayscale(1) contrast(1.08) brightness(1.06);
-  opacity: 0.34;
+  filter: grayscale(1) contrast(1.05);
+  opacity: 0.3;
+  /* Elips maske merkezi yukarıda: omuzlar ve alt kenar daha hızlı erir,
+     portre bandın içinden çıkıyormuş gibi görünür. */
   -webkit-mask-image: radial-gradient(
-    circle at 50% 46%,
-    #000 42%,
-    rgba(0, 0, 0, 0.6) 64%,
-    transparent 80%
+    ellipse 56% 50% at 50% 36%,
+    #000 44%,
+    rgba(0, 0, 0, 0.45) 70%,
+    transparent 92%
   );
   mask-image: radial-gradient(
-    circle at 50% 46%,
-    #000 42%,
-    rgba(0, 0, 0, 0.6) 64%,
-    transparent 80%
+    ellipse 56% 50% at 50% 36%,
+    #000 44%,
+    rgba(0, 0, 0, 0.45) 70%,
+    transparent 92%
   );
 }
 
