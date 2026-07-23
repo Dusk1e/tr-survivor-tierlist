@@ -139,8 +139,13 @@ export default function TierRow({
 
       {/* Kadro — bandın tüm genişliğini kullanır */}
       {/* Kartlar ortadan iki yana eşit yayılır (soldan dizilmek yerine).
-          Sarınca son satır da ortalanır. */}
-      <div className="flex flex-wrap content-start justify-center gap-1.5 px-3 py-2.5">
+          Sarınca son satır da ortalanır. Aşk Köşesi'nde çiftler arası boşluk
+          daha geniş — her çift kendi başına bir küme olarak okunsun. */}
+      <div
+        className={`flex flex-wrap content-start items-stretch justify-center px-3 py-2.5 ${
+          isLove ? "gap-x-4 gap-y-3" : "gap-1.5"
+        }`}
+      >
         {mice.length === 0 ? (
           <div className="flex w-full items-center py-2 pl-1 font-system text-sm font-semibold italic text-choco/25">
             {isLove ? "— Henüz çift yok —" : "— Henüz kimse yok —"}
@@ -150,7 +155,7 @@ export default function TierRow({
             u.kind === "couple" ? (
               <CoupleCard key={u.a.id} a={u.a} b={u.b} accent={tier.accent} />
             ) : (
-              <MouseCard key={u.m.id} mouse={u.m} />
+              <SingleLoveCard key={u.m.id} mouse={u.m} accent={tier.accent} />
             )
           )
         ) : (
@@ -189,7 +194,80 @@ function groupCouples(mice: Mouse[]): Unit[] {
   return out;
 }
 
-/** İki fare + aralarında atan bir kalp. */
+/** Kalp SVG'si — çift çerçevesinde tekrar kullanılır. */
+function Heart({
+  accent,
+  size,
+  stroke = false,
+}: {
+  accent: string;
+  size: number;
+  stroke?: boolean;
+}) {
+  return (
+    <svg viewBox="0 0 100 100" width={size} height={size} className="block">
+      <path
+        d="M50,89 C50,89 9,61 9,36 C9,20 21,10 33,10 C41,10 47,15 50,21 C53,15 59,10 67,10 C79,10 91,20 91,36 C91,61 50,89 50,89 Z"
+        fill={accent}
+        stroke={stroke ? "rgba(255,255,255,0.6)" : "none"}
+        strokeWidth={stroke ? 4 : 0}
+      />
+    </svg>
+  );
+}
+
+/**
+ * Ortadaki büyük kalp — yumuşak bir parıltı halkası, üstünde küçük bir süs
+ * kalbi ve sakin bir nabız. Hepsi saf CSS; kaç çift olursa olsun kasmaz.
+ */
+function CoupleHeart({
+  accent,
+  a,
+  b,
+}: {
+  accent: string;
+  a: string;
+  b: string;
+}) {
+  return (
+    <span
+      className="relative mx-1 flex shrink-0 items-center justify-center self-center"
+      style={{ width: 34, height: 44 }}
+      aria-label="çift"
+      title={`${a} & ${b}`}
+    >
+      {/* yumuşak ışık halesi */}
+      <span
+        aria-hidden
+        className="absolute rounded-full"
+        style={{
+          width: 30,
+          height: 30,
+          background: `radial-gradient(circle, ${accent}66, transparent 70%)`,
+          filter: "blur(3px)",
+        }}
+      />
+      {/* küçük süs kalp — hafif yukarıda */}
+      <span
+        aria-hidden
+        className="absolute opacity-70"
+        style={{ top: 0, left: "50%", transform: "translateX(-50%)" }}
+      >
+        <Heart accent={accent} size={10} />
+      </span>
+      {/* ana kalp */}
+      <span className="heart-beat relative">
+        <Heart accent={accent} size={27} stroke />
+      </span>
+    </span>
+  );
+}
+
+/**
+ * Bir çift — iki fare BİRBİRİNE BAKAR (soldaki aynalanır), aralarında atan
+ * büyük bir kalp. Romantik bir çerçeve içinde, komşu çiftlerden net ayrı.
+ * Köşe kalpleri gizlenir; sahnenin yıldızı ortadaki kalptir.
+ */
 function CoupleCard({
   a,
   b,
@@ -201,29 +279,46 @@ function CoupleCard({
 }) {
   return (
     <div
-      className="flex items-center gap-1 rounded-2xl border px-2 py-1.5"
+      className="relative flex items-center gap-1.5 rounded-[20px] border px-3 py-2.5"
       style={{
-        borderColor: `${accent}55`,
-        background: `linear-gradient(135deg, ${accent}18, ${accent}08)`,
-        boxShadow: `0 0 18px ${accent}22`,
+        borderColor: `${accent}66`,
+        background: `linear-gradient(135deg, ${accent}22, ${accent}0b 55%, transparent)`,
+        boxShadow: `0 8px 26px ${accent}22, inset 0 0 0 1px rgba(255,255,255,0.05)`,
       }}
     >
-      <MouseCard mouse={a} />
+      {/* üst kenar parıltısı — çerçeveye ince bir ışık verir */}
       <span
-        className="heart-beat shrink-0 px-0.5"
-        aria-label="çift"
-        title={`${a.nickname} & ${b.nickname}`}
-      >
-        <svg viewBox="0 0 100 100" width={22} height={22}>
-          <path
-            d="M50,89 C50,89 9,61 9,36 C9,20 21,10 33,10 C41,10 47,15 50,21 C53,15 59,10 67,10 C79,10 91,20 91,36 C91,61 50,89 50,89 Z"
-            fill={accent}
-            stroke="rgba(255,255,255,0.5)"
-            strokeWidth="4"
-          />
-        </svg>
-      </span>
-      <MouseCard mouse={b} />
+        aria-hidden
+        className="pointer-events-none absolute inset-x-7 top-0 h-px rounded-full"
+        style={{
+          background: `linear-gradient(90deg, transparent, ${accent}, transparent)`,
+          opacity: 0.7,
+        }}
+      />
+      {/* Soldaki fare içeri baksın diye aynalanır — ama YALNIZCA varsayılan
+          fare görselinde. Özel yüklenmiş bir fotoğraf ters/ayna dönmesin. */}
+      <MouseCard mouse={a} mirror={!a.image_url} hideLoveBadge />
+      <CoupleHeart accent={accent} a={a.nickname} b={b.nickname} />
+      <MouseCard mouse={b} hideLoveBadge />
+    </div>
+  );
+}
+
+/**
+ * Aşk Köşesi'nde eşi olmayan (henüz eşleşmemiş) tek fare. Çift çerçevesiyle
+ * aynı dilde ama tek kişilik; kime ait olduğu belli, çiftlerle karışmaz.
+ */
+function SingleLoveCard({ mouse, accent }: { mouse: Mouse; accent: string }) {
+  return (
+    <div
+      className="relative flex items-center rounded-[20px] border border-dashed px-3 py-2.5"
+      style={{
+        borderColor: `${accent}44`,
+        background: `linear-gradient(135deg, ${accent}12, transparent 70%)`,
+      }}
+      title={`${mouse.nickname} — henüz eşi yok`}
+    >
+      <MouseCard mouse={mouse} />
     </div>
   );
 }

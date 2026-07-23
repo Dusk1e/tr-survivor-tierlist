@@ -13,6 +13,8 @@ import {
   PermId,
   Scores,
   Session,
+  SiteConfig,
+  SITE_VARSAYILAN,
   TickerConfig,
   TICKER_VARSAYILAN,
   Vote,
@@ -31,6 +33,7 @@ const LS_VOTES = "tst_votes_v7";
 const LS_SESSION = "tst_session_v3";
 const LS_AUTH = "tst_authorities_v2";
 const LS_OY_YEDEK = "tst_oy_yedegi_v1";
+const LS_SITE = "tst_site_v1";
 
 const DEFAULT_AUTHORITIES = ["Alwesh", "Blacklean"];
 
@@ -573,6 +576,45 @@ export async function restoreVotes(): Promise<{
     geriYuklenen: yuklenecek.length,
     atlanan: yedek.satirlar.length - yuklenecek.length,
   };
+}
+
+/* ============================ site ayarları ============================= */
+
+export async function getSiteConfig(): Promise<SiteConfig> {
+  if (isCloud) {
+    try {
+      const res = await getFresh("/api/site");
+      if (!res.ok) return SITE_VARSAYILAN;
+      return (await res.json()) as SiteConfig;
+    } catch {
+      return SITE_VARSAYILAN;
+    }
+  }
+  const s = lsGet<SiteConfig>(LS_SITE, SITE_VARSAYILAN);
+  return s && typeof s === "object" ? s : SITE_VARSAYILAN;
+}
+
+export async function saveSiteConfig(cfg: SiteConfig): Promise<SiteConfig> {
+  if (isCloud) {
+    const res = await fetch("/api/site", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(cfg),
+      cache: "no-store",
+    });
+    if (res.status === 401)
+      throw new Error("Oturumun sona ermiş. Sayfayı yenileyip tekrar gir.");
+    if (!res.ok)
+      throw new Error(
+        (await safeMsg(res)) || `Kaydedilemedi (HTTP ${res.status})`
+      );
+    const kayitli = (await res.json()) as SiteConfig;
+    pingDataChanged();
+    return kayitli;
+  }
+  lsSet(LS_SITE, cfg);
+  pingDataChanged();
+  return cfg;
 }
 
 /* ============================= son dakika =============================== */

@@ -67,6 +67,20 @@ export const TICKER_VARSAYILAN: TickerConfig = {
   hiz: 40,
 };
 
+/** Site geneli görünürlük ayarları — admin panelinden yönetilir. */
+export interface SiteConfig {
+  /**
+   * Monarch'ın sağ yarısı ("Uzun süredir aktif olmayan efsaneler").
+   * Kapatılınca o yarı public sayfada hiç görünmez, Monarch tam genişlikte
+   * tek bir bant olur. Varsayılan AÇIK — hiçbir şey kaybolmasın.
+   */
+  monarch2: boolean;
+}
+
+export const SITE_VARSAYILAN: SiteConfig = {
+  monarch2: true,
+};
+
 export type VoteStatus = "pending" | "approved" | "rejected";
 
 export interface Vote {

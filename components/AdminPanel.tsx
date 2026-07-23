@@ -15,6 +15,7 @@ import PermissionsPanel from "./PermissionsPanel";
 import AdminAuthorities from "./AdminAuthorities";
 import AdminCouples from "./AdminCouples";
 import AdminTicker from "./AdminTicker";
+import AdminSite from "./AdminSite";
 
 type Toast = { id: number; text: string; kind: "ok" | "err" };
 type Tab =
@@ -24,7 +25,8 @@ type Tab =
   | "perms"
   | "authorities"
   | "couples"
-  | "ticker";
+  | "ticker"
+  | "site";
 
 /** Full admin dashboard (password-gated, unlisted URL). */
 export default function AdminPanel({ onLogout }: { onLogout: () => void }) {
@@ -119,6 +121,9 @@ export default function AdminPanel({ onLogout }: { onLogout: () => void }) {
         <TabButton active={tab === "ticker"} onClick={() => setTab("ticker")}>
           TFM Bülteni
         </TabButton>
+        <TabButton active={tab === "site"} onClick={() => setTab("site")}>
+          Görünüm
+        </TabButton>
       </div>
 
       {tab === "roster" && (
@@ -156,6 +161,8 @@ export default function AdminPanel({ onLogout }: { onLogout: () => void }) {
       {tab === "couples" && <AdminCouples onToast={pushToast} />}
 
       {tab === "ticker" && <AdminTicker onToast={pushToast} />}
+
+      {tab === "site" && <AdminSite onToast={pushToast} />}
     </div>
   );
 }

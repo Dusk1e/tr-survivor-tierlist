@@ -13,6 +13,7 @@ import {
   DATA_EVENT,
   getMice,
   getSession,
+  getSiteConfig,
   getVoteState,
   mouseLogin,
   mouseLogout,
@@ -23,6 +24,8 @@ import {
   MyVote,
   Scores,
   Session,
+  SiteConfig,
+  SITE_VARSAYILAN,
   TargetAgg,
 } from "@/lib/types";
 import MouseLoginModal from "./MouseLoginModal";
@@ -32,6 +35,7 @@ interface Ctx {
   ready: boolean;
   session: Session | null;
   mice: Mouse[];
+  site: SiteConfig;
   totalApproved: number;
   isMe: (id: string) => boolean;
   aggFor: (id: string) => TargetAgg | null;
@@ -63,6 +67,7 @@ export default function SessionProvider({
   const [ready, setReady] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
   const [mice, setMice] = useState<Mouse[]>([]);
+  const [site, setSite] = useState<SiteConfig>(SITE_VARSAYILAN);
   const [agg, setAgg] = useState<Record<string, TargetAgg>>({});
   const [mine, setMine] = useState<Record<string, MyVote>>({});
   const [totalApproved, setTotalApproved] = useState(0);
@@ -73,7 +78,11 @@ export default function SessionProvider({
 
   const refresh = useCallback(async () => {
     try {
-      const [miceData, sess] = await Promise.all([getMice(), getSession()]);
+      const [miceData, sess, siteData] = await Promise.all([
+        getMice(),
+        getSession(),
+        getSiteConfig(),
+      ]);
       // Session died (epoch bump / deletion) while we thought we were in.
       if (!sess && hadSession.current) {
         hadSession.current = false;
@@ -82,6 +91,7 @@ export default function SessionProvider({
       hadSession.current = !!sess;
       const votes = await getVoteState(sess);
       setMice(miceData);
+      setSite(siteData);
       setSession(sess);
       setAgg(votes.agg);
       setMine(votes.mine);
@@ -164,6 +174,7 @@ export default function SessionProvider({
       ready,
       session,
       mice,
+      site,
       totalApproved,
       isMe,
       aggFor,
@@ -178,6 +189,7 @@ export default function SessionProvider({
       ready,
       session,
       mice,
+      site,
       totalApproved,
       isMe,
       aggFor,

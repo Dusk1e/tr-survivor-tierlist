@@ -14,7 +14,7 @@ import { useSession } from "./SessionProvider";
  * scores, sessions and the roster stay in sync everywhere.
  */
 export default function Tierlist() {
-  const { ready, mice, totalApproved } = useSession();
+  const { ready, mice, site, totalApproved } = useSession();
 
   const grouped = useMemo(() => {
     const map: Record<string, Mouse[]> = {};
@@ -68,12 +68,15 @@ export default function Tierlist() {
             ))
           : SLOTS.map((s, i) => {
               // monarch_respect kendi satırını almaz; Monarch'ın sağ yarısı
-              // olarak aynı bandın içinde çizilir.
+              // olarak aynı bandın içinde çizilir. Panelden kapatılınca hiç
+              // görünmez (aşağıda monarch tek bant olarak çizilir).
               if (s.id === "monarch_respect") return null;
 
               if (s.id === "monarch") {
                 const sag = SLOT_MAP["monarch_respect"];
-                if (sag)
+                // Sadece panelden AÇIKSA ikiye bölünür; kapalıyken Monarch
+                // aşağıdaki normal tam genişlik banda düşer.
+                if (sag && site.monarch2)
                   return (
                     <SplitTierRow
                       key={s.id}

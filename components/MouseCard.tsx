@@ -17,7 +17,17 @@ import { useSession } from "./SessionProvider";
  *  - Hover: hızlı istatistik balonu (body'ye portal edilir)
  *  - Tıklama: detay + puanlama penceresi
  */
-export default function MouseCard({ mouse }: { mouse: Mouse }) {
+export default function MouseCard({
+  mouse,
+  mirror = false,
+  hideLoveBadge = false,
+}: {
+  mouse: Mouse;
+  /** Avatarı yatay çevir — Aşk Köşesi'nde çiftin birbirine bakması için. */
+  mirror?: boolean;
+  /** Çift içinde köşedeki küçük kalbi gizle (ortadaki büyük kalp yeter). */
+  hideLoveBadge?: boolean;
+}) {
   const tier = tierOf(mouse.tier);
   const isLove = tier.shape === "heart";
   const { isMe, aggFor, myVoteFor, openDetail } = useSession();
@@ -95,6 +105,9 @@ export default function MouseCard({ mouse }: { mouse: Mouse }) {
             style={{
               borderColor: mine ? "#4ade8099" : `${tier.accent}66`,
               background: `${tier.accent}12`,
+              // Çiftin birbirine bakması için sadece avatarı çeviririz;
+              // isim, rozet ve halkalar yerinde kalır.
+              transform: mirror ? "scaleX(-1)" : undefined,
             }}
           >
             <MouseAvatar
@@ -162,19 +175,23 @@ export default function MouseCard({ mouse }: { mouse: Mouse }) {
             </span>
           )}
 
-          {/* Aşk Köşesi'nde puan yoktur — puanın yerini kalp alır. */}
-          <div className="absolute -bottom-1.5 -right-2">
-            {isLove ? (
-              <HeartBadge accent={tier.accent} />
-            ) : (
-              <ScoreRing
-                value={agg ? agg.overall : null}
-                count={agg?.count}
-                size={35}
-                stroke={4}
-              />
-            )}
-          </div>
+          {/* Aşk Köşesi'nde puan yoktur — puanın yerini kalp alır. Çift
+              içinde ortadaki büyük kalp yeterli olduğu için köşe kalbi
+              gizlenir (hideLoveBadge). */}
+          {!(isLove && hideLoveBadge) && (
+            <div className="absolute -bottom-1.5 -right-2">
+              {isLove ? (
+                <HeartBadge accent={tier.accent} />
+              ) : (
+                <ScoreRing
+                  value={agg ? agg.overall : null}
+                  count={agg?.count}
+                  size={35}
+                  stroke={4}
+                />
+              )}
+            </div>
+          )}
         </div>
 
         <span className="mt-0.5 max-w-full truncate font-system text-[12px] font-bold leading-tight text-choco">
