@@ -35,11 +35,6 @@ export default function MouseCard({
   const agg = aggFor(mouse.id);
   // Giriş yapan oyuncunun bu fareye verdiği puan (yoksa undefined).
   const benimOyum = myVoteFor(mouse.id);
-  // Damga için eşik %75: sıradan bir çoğunluk yetmez, oy verenlerin dörtte
-  // üçü "hotkey kullanıyor" demeli.
-  const hotkeyDamgasi = Boolean(
-    !isLove && agg && agg.count > 0 && agg.hotkeyYesPct >= 75
-  );
 
   const [peek, setPeek] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -152,26 +147,6 @@ export default function MouseCard({
               >
                 <path d="M20 6 9 17l-5-5" />
               </svg>
-            </span>
-          )}
-          {/* Hotkey damgası — oyların yarısından fazlası "kullanıyor" derse
-              sol altta kırmızı, hafif eğik bir H belirir. Puan halkasının
-              çapraz karşısında durur, üstteki tik ile çakışmaz. */}
-          {hotkeyDamgasi && (
-            <span
-              className="absolute -bottom-0.5 -left-1 flex h-[17px] w-[17px] items-center justify-center rounded font-display text-[10px] font-bold leading-none"
-              style={{
-                color: "#ff8a90",
-                border: "1.5px solid #e5646b",
-                background: "#2a1013",
-                transform: "rotate(-14deg)",
-              }}
-              title={`Oy verenlerin %${Math.round(
-                agg?.hotkeyYesPct ?? 0
-              )}'i hotkey kullandığını düşünüyor`}
-              aria-label="Hotkey kullanıyor"
-            >
-              H
             </span>
           )}
 
